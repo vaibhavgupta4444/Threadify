@@ -1,36 +1,186 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+### Threadify - Reel Sharing Platform
 
-## Getting Started
+A modern reel sharing platform built with Next.js, allowing users to create, share, and discover short-form video content.
 
-First, run the development server:
+## Tech Stack
 
-```bash
+- **Frontend**: Next.js 14, TypeScript, React
+- **Backend**: Next.js API Routes, MongoDB
+- **Authentication**: NextAuth.js
+- **Media Storage**: ImageKit
+- **Styling**: Tailwind CSS (assumed)
+- **Database**: MongoDB
+
+
+## Features
+
+- 🎥 **Video Upload & Sharing**: Upload and share short-form video content
+- 🔐 **Authentication**: Secure user authentication with NextAuth.js
+- 👤 **User Profiles**: Personalized user profiles and content management
+- 📱 **Responsive Design**: Mobile-first responsive design
+- 🖼️ **Media Optimization**: Optimized media delivery through ImageKit
+- 💾 **Data Persistence**: Robust data storage with MongoDB
+- 🔍 **Content Discovery**: Browse and discover trending reels
+
+
+## ️ Installation & Setup
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- MongoDB database
+- ImageKit account
+- NextAuth.js provider credentials
+
+
+### Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```plaintext
+# Database
+MONGODB_URI=your_mongodb_connection_string
+
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret
+
+# OAuth Providers (example with Google)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# ImageKit
+IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
+IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
+IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
+```
+
+### Installation Steps
+
+1. **Clone the repository**
+
+```shellscript
+git clone https://github.com/yourusername/threadify.git
+cd threadify
+```
+
+
+2. **Install dependencies**
+
+```shellscript
+npm install
+# or
+yarn install
+```
+
+
+3. **Set up environment variables**
+
+1. Copy `.env.example` to `.env.local`
+2. Fill in your environment variables
+
+
+
+4. **Run the development server**
+
+```shellscript
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+5. **Open your browser**
+Navigate to [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```plaintext
+threadify/
+├── components/          # Reusable UI components
+├── pages/              # Next.js pages and API routes
+│   ├── api/           # API endpoints
+│   └── auth/          # Authentication pages
+├── lib/               # Utility functions and configurations
+├── models/            # MongoDB models
+├── public/            # Static assets
+├── styles/            # Global styles
+└── types/             # TypeScript type definitions
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Configuration
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### MongoDB Setup
 
-## Deploy on Vercel
+1. Create a MongoDB database (local or MongoDB Atlas)
+2. Add your connection string to `MONGODB_URI`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### ImageKit Setup
+
+1. Create an ImageKit account
+2. Get your public key, private key, and URL endpoint
+3. Add credentials to environment variables
+
+
+### NextAuth Setup
+
+1. Configure your OAuth providers
+2. Set up callback URLs in your provider settings
+3. Add provider credentials to environment variables
+
+
+## Usage
+
+1. **Sign Up/Login**: Create an account or login with OAuth providers
+2. **Upload Reels**: Share your short-form video content
+3. **Discover Content**: Browse and interact with other users' reels
+4. **Profile Management**: Customize your profile and manage your content
+
+
+## Deployment
+
+### Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy automatically
+
+
+### Other Platforms
+
+- Ensure all environment variables are configured
+- Build the project: `npm run build`
+- Start the production server: `npm start`
+
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+
+## Acknowledgments
+
+- Next.js team for the amazing framework
+- MongoDB for reliable database solutions
+- ImageKit for media optimization
+- NextAuth.js for authentication solutions
+
+
+## Support
+
+If you have any questions or need help, please:
+
+- Open an issue on GitHub
+- Contact: [vaibhav.ayushgupta@gmail.com](mailto:vaibhav.ayushgupta@gmail.com)
+
+
+---
+
+**Built with ❤️ using Next.js and TypeScript**
