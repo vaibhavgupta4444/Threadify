@@ -1,0 +1,46 @@
+import { NextRequest, NextResponse } from "next/server";
+import User from "../../../../../models/User";
+import { dbConnect } from "../../../../../lib/dbConnection";
+import bcrypt from "bcryptjs";
+
+export async function POST(request: NextRequest) {
+    try {
+
+        const { email, password } = await request.json();
+       
+        if (!email || !password) {
+            return NextResponse.json({
+                success: false,
+                message: "Email or Password is missing"
+            }, { status: 400 })
+        }
+
+        await dbConnect();
+
+        const isExistingUser = await User.findOne({ email });
+        if (isExistingUser) {
+            return NextResponse.json({
+                success: false,
+                message: "User already exist"
+            }, { status: 400 })
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await User.create({
+            email,
+            password:                                                                                           hashedPassword
+        })
+
+        return NextResponse.json({
+            success: true,
+            message: "Registered user successfully"
+        }, { status: 201 })
+
+    } catch (error) {
+        return NextResponse.json({
+            success: false,
+            message: error
+        }, { status: 500 })
+    }
+}
