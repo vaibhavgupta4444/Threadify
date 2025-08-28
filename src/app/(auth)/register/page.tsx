@@ -13,8 +13,10 @@ import { Input } from '@/components/ui/input'
 import { signUpSchema } from '@/schemas/signUpSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 const Page = () => {
@@ -34,11 +36,12 @@ const Page = () => {
     try {
       const response = await axios.post('/api/auth/register', { email: data.email, password: data.password });
       if (response.data.success) {
-        console.log(response);
+        toast.success(response.data.message);
         router.push('/');
       }
     } catch (error) {
-      console.error(error)
+      console.log(error);
+      toast.error("Something went wrong!");
     }
   }
 
@@ -118,10 +121,10 @@ const Page = () => {
         </Form>
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
-            Already have account?{" "}
-            <a href="/login" className="text-blue-600 hover:underline">
+            Already have an account?{" "}
+            <Link href="/login" className="text-blue-600 hover:underline">
               Login
-            </a>
+            </Link>
           </p>
         </div>
       </div>
