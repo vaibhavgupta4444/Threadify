@@ -5,9 +5,9 @@ import bcrypt from "bcryptjs";
 
 export async function POST(request: NextRequest) {
     try {
-
+        
         const { email, password } = await request.json();
-       
+ 
         if (!email || !password) {
             return NextResponse.json({
                 success: false,
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
         await User.create({
             email,
-            password:                                                                                           hashedPassword
+            password:hashedPassword
         })
 
         return NextResponse.json({
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         return NextResponse.json({
             success: false,
-            message: error
+            message: error instanceof Error ? error.message : "Internal Server Error",
         }, { status: 500 })
     }
 }
