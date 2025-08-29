@@ -2,198 +2,185 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Search, Home, Compass, Heart, User, Plus, Menu, X } from "lucide-react"
+import { Search, Home, Compass, Heart, User, Plus, Menu, X, Bell } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { signOut, useSession } from "next-auth/react"
 
 export function Navbar() {
-
-    const { data: session } = useSession();
-
-    const handleSignOut = async () => {
-        try {
-            await signOut();
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-    // Mock authentication state - replace with actual auth logic
-    const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+    const { data: session } = useSession();
+    const isAuthenticated = !!session?.user;
 
     return (
-        <nav className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="flex items-center justify-between h-16">
+        <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="mx-auto max-w-7xl px-4">
+                <div className="flex h-16 items-center justify-between">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                        <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">T</span>
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2 transition-opacity hover:opacity-90"
+                        aria-label="Threadify home"
+                    >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
+                            <span className="text-sm font-bold text-primary-foreground">T</span>
                         </div>
-                        <span className="font-bold text-xl text-gray-900 hidden sm:block">Threadify</span>
+                        <span className="hidden text-xl font-bold text-foreground sm:inline">Threadify</span>
                     </Link>
 
-                    {/* Desktop Search Bar */}
-                    <div className="hidden lg:flex items-center">
+                    {/* Desktop search */}
+                    <div className="hidden lg:block">
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search className="w-4 h-4 text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Search reels, creators..."
-                                className="w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                            />
+                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input type="text" placeholder="Search reels, creators..." className="w-80 pl-9" aria-label="Search" />
                         </div>
                     </div>
 
-                    {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center space-x-2">
-                        <Link
-                            href="/"
-                            className="flex items-center space-x-1 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                            <Home className="w-5 h-5 text-gray-700" />
-                            <span className="hidden lg:inline text-gray-700">Home</span>
-                        </Link>
-                        <Link
-                            href="/explore"
-                            className="flex items-center space-x-1 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                            <Compass className="w-5 h-5 text-gray-700" />
-                            <span className="hidden lg:inline text-gray-700">Explore</span>
-                        </Link>
+                    {/* Desktop actions */}
+                    <div className="hidden items-center gap-2 md:flex">
+                        <Button asChild variant="ghost" className="gap-1">
+                            <Link href="/">
+                                <Home className="h-5 w-5" />
+                                <span className="hidden lg:inline">Home</span>
+                            </Link>
+                        </Button>
+                        <Button asChild variant="ghost" className="gap-1">
+                            <Link href="/explore">
+                                <Compass className="h-5 w-5" />
+                                <span className="hidden lg:inline">Explore</span>
+                            </Link>
+                        </Button>
 
                         {isAuthenticated ? (
                             <>
-                                <button className="flex items-center space-x-1 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                                    <Plus className="w-5 h-5 text-gray-700" />
-                                    <span className="hidden lg:inline text-gray-700">Create</span>
-                                </button>
-                                <button className="flex items-center space-x-1 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors relative">
-                                    <Heart className="w-5 h-5 text-gray-700" />
-                                    <span className="hidden lg:inline text-gray-700">Activity</span>
-                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full"></span>
-                                </button>
+                                <Button className="gap-1">
+                                    <Plus className="h-5 w-5" />
+                                    <span className="hidden sm:inline">Create</span>
+                                </Button>
 
-                                {/* User Menu */}
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                        className="w-8 h-8 rounded-full overflow-hidden hover:ring-2 hover:ring-amber-500 transition-all"
-                                    >
-                                        <img src="/diverse-user-avatars.png" alt="User" className="w-full h-full object-cover" />
-                                    </button>
+                                <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
+                                    <Bell className="h-5 w-5" />
+                                    <span
+                                        aria-hidden="true"
+                                        className="absolute right-1 top-1 inline-block h-2 w-2 rounded-full bg-accent"
+                                    />
+                                </Button>
 
-                                    {isDropdownOpen && (
-                                        <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                                            <button className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-2">
-                                                <User className="w-4 h-4 text-gray-500" />
-                                                <span>Profile</span>
-                                            </button>
-                                            <button className="w-full px-4 py-2 text-left hover:bg-gray-50">Settings</button>
-                                            <hr className="my-2 border-gray-200" />
-                                            <button
-                                                onClick={handleSignOut}
-                                                className="w-full px-4 py-2 text-left hover:bg-gray-50 text-red-600"
-                                            >
-                                                Logout
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="gap-2">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src="/diverse-user-avatars.png" alt="User avatar" />
+                                                <AvatarFallback>U</AvatarFallback>
+                                            </Avatar>
+                                            <span className="hidden sm:inline">You</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-56">
+                                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="gap-2">
+                                            <User className="h-4 w-4" />
+                                            Profile
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>Settings</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-destructive" onClick={() => signOut()}>
+                                            Log out
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </>
                         ) : (
-                            <div className="flex items-center space-x-2">
-
-                                <Link href="/login" className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Log in</Link>
-                                <Link href="/register" className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors">Sign up</Link>
-
-                            </div>
+                            <>
+                                <Link href="/login">
+                                    Log in
+                                </Link>
+                                <Link href="/register" className="bg-primary text-primary-foreground p-2 transition-opacity hover:opacity-90 rounded-md">Register Now</Link>
+                            </>
                         )}
                     </div>
 
-                    {/* Mobile Menu Buttons */}
-                    <div className="md:hidden flex items-center space-x-2">
-                        <button
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                            onClick={() => setIsSearchOpen(!isSearchOpen)}
-                        >
-                            <Search className="w-5 h-5 text-gray-700" />
-                        </button>
-                        <button
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        >
-                            {isMobileMenuOpen ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
-                        </button>
+                    {/* Mobile buttons */}
+                    <div className="flex items-center gap-2 md:hidden">
+                        <Button variant="ghost" size="icon" aria-label="Toggle search" onClick={() => setIsSearchOpen((v) => !v)}>
+                            <Search className="h-5 w-5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" aria-label="Toggle menu" onClick={() => setIsMobileMenuOpen((v) => !v)}>
+                            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </Button>
                     </div>
                 </div>
             </div>
 
-            {/* Mobile Search Bar */}
+            {/* Mobile search */}
             {isSearchOpen && (
-                <div className="md:hidden p-4 border-t border-gray-200 bg-white">
+                <div className="border-t border-border bg-background p-4 md:hidden">
                     <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="w-4 h-4 text-gray-400" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search reels, creators..."
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                        />
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input type="text" placeholder="Search reels, creators..." className="w-full pl-9" aria-label="Search" />
                     </div>
                 </div>
             )}
 
-            {/* Mobile Menu */}
+            {/* Mobile menu */}
             {isMobileMenuOpen && (
-                <div className="md:hidden border-t border-gray-200 bg-white">
-                    <div className="p-4 space-y-2">
-                        <Link href="/" className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                            <Home className="w-5 h-5 text-gray-700" />
-                            <span className="text-gray-700">Home</span>
-                        </Link>
-                        <Link
-                            href="/explore"
-                            className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-                        >
-                            <Compass className="w-5 h-5 text-gray-700" />
-                            <span className="text-gray-700">Explore</span>
-                        </Link>
+                <div className="border-t border-border bg-background md:hidden">
+                    <div className="p-2">
+                        <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                            <Link href="/">
+                                <Home className="h-5 w-5" />
+                                Home
+                            </Link>
+                        </Button>
+                        <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                            <Link href="/explore">
+                                <Compass className="h-5 w-5" />
+                                Explore
+                            </Link>
+                        </Button>
 
                         {isAuthenticated ? (
                             <>
-                                <button className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                                    <Plus className="w-5 h-5 text-gray-700" />
-                                    <span className="text-gray-700">Create</span>
-                                </button>
-                                <button className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                                    <Heart className="w-5 h-5 text-gray-700" />
-                                    <span className="text-gray-700">Activity</span>
-                                </button>
-                                <button className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                                    <User className="w-5 h-5 text-gray-700" />
-                                    <span className="text-gray-700">Profile</span>
-                                </button>
-                                <hr className="my-2 border-gray-200" />
-                                <button
-                                    onClick={handleSignOut}
-                                    className="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors text-red-600"
+                                <Button className="mt-1 w-full justify-start gap-2">
+                                    <Plus className="h-5 w-5" />
+                                    Create
+                                </Button>
+                                <Button variant="ghost" className="mt-1 w-full justify-start gap-2">
+                                    <Heart className="h-5 w-5" />
+                                    Activity
+                                </Button>
+                                <Button variant="ghost" className="mt-1 w-full justify-start gap-2">
+                                    <User className="h-5 w-5" />
+                                    Profile
+                                </Button>
+                                <div className="my-2 h-px bg-border" />
+                                <Button
+                                    variant="ghost"
+                                    className="w-full justify-start text-destructive"
+                                    onClick={() => signOut()}
                                 >
                                     Log out
-                                </button>
+                                </Button>
                             </>
                         ) : (
                             <>
-                                <hr className="my-2 border-gray-200" />
-
-                                <Link href="/login" className="w-full text-left p-3 hover:bg-gray-50 rounded-lg transition-colors text-gray-700">Log in</Link>
-                                <Link href="/register" className="w-full mt-2 p-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors">Sign up</Link>
-
+                                <div className="my-2 h-px bg-border" />
+                                <Link href="/login" className="w-full justify-start">
+                                    Log in
+                                </Link>
+                                <Link href="/register" className="mt-2 w-full">Register Now</Link>
                             </>
                         )}
                     </div>

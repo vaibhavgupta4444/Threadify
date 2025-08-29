@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbConnect } from "../../../../lib/dbConnection";
+import dbConnect from "../../../../lib/dbConnection";
 import Video, { videoInterface } from "../../../../models/video";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/authOptions";

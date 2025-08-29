@@ -13,13 +13,13 @@ export async function GET() {
 
     try {
 
-        const authenticationParams = { token, expire, signature };
+        const authenticationParams = { token, expire, signature, publicKey: process.env.IMAGEKIT_PUBLIC_KEY };
 
         return Response.json(authenticationParams)
     } catch (error) {
         return NextResponse.json({
-            success:false,
-            message:error
-        },{status:500})
+            success: false,
+            message: error
+        }, { status: 500 })
     }
 }

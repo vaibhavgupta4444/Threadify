@@ -37,7 +37,7 @@ const Page = () => {
       const response = await axios.post('/api/auth/register', { email: data.email, password: data.password });
       if (response.data.success) {
         toast.success(response.data.message);
-        router.push('/');
+        router.push('/login');
       }
     } catch (error) {
       console.log(error);

@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { signInSchema } from '@/schemas/signInSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios from 'axios'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -32,16 +32,19 @@ const Page = () => {
     })
 
     const onSubmit = async (data: z.infer<typeof signInSchema>) => {
-        try {
-            const response = await axios.post('/api/auth/login', { email: data.email, password: data.password });
-            if (response.data.success) {
-                toast.success(response.data.message);
+      
+            const response = await signIn('credentials', {
+                redirect: false,
+                email: data.email,
+                password: data.password,
+            })
+            if (response?.url) {
+                toast.success("Welocome back");
                 router.push('/');
             }
-        } catch (error) {
-            console.log(error);
-            toast.error("Something went wrong!");
-        }
+            if(response?.error){
+                toast.error("Invalid Credentials!");
+            }
     }
 
     return (
