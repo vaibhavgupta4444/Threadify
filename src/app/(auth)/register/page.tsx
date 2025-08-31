@@ -12,12 +12,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { signUpSchema } from '@/schemas/signUpSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios from 'axios'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { apiClient } from '../../../../lib/app-client'
 
 const Page = () => {
 
@@ -34,9 +34,9 @@ const Page = () => {
 
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     try {
-      const response = await axios.post('/api/auth/register', { email: data.email, password: data.password });
-      if (response.data.success) {
-        toast.success(response.data.message);
+      const response = await apiClient.register({ email: data.email, password: data.password });
+      if (response.success) {
+        toast.success(response.message);
         router.push('/login');
       }
     } catch (error) {

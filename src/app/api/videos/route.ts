@@ -37,8 +37,7 @@ export async function POST(request: NextRequest) {
         const body: videoInterface = await request.json();
         if (!body.title ||
             !body.description ||
-            !body.videoUrl ||
-            !body.thumbnailUrl
+            !body.videoUrl 
         ) {
             return NextResponse.json({
                 success: false,
@@ -60,6 +59,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
+            message: "You just uploaded a reel",
             data: response
         }, { status: 200 });
 

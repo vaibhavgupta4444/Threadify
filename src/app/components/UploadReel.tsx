@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ImageKitAbortError,
@@ -24,6 +22,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, UploadCloud, Video, X } from "lucide-react"
+import { apiClient } from "../../../lib/app-client"
+import { toast } from "sonner"
 
 type Privacy = "public" | "private"
 
@@ -31,8 +31,9 @@ export default function UploadReel() {
   const [file, setFile] = useState<File | null>(null)
   const [previewURL, setPreviewURL] = useState<string | null>(null)
   const [title, setTitle] = useState("")
-  const [caption, setCaption] = useState("")
+  const [description, setDescription] = useState("")
   const [privacy, setPrivacy] = useState<Privacy>("public")
+  const [videoUrl, setVideoUrl] = useState("")
   const [progress, setProgress] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -41,18 +42,38 @@ export default function UploadReel() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
 
-  // Revoke object URL when file changes/unmounts
+  // Revoke preview URL on cleanup
   useEffect(() => {
     return () => {
       if (previewURL) URL.revokeObjectURL(previewURL)
     }
   }, [previewURL])
 
-  const canSubmit = useMemo(() => file && title.trim().length > 0 && !isUploading, [file, title, isUploading])
+  // Auto upload when file is picked
+  useEffect(() => {
+    if (file) handleSubmit()
+  }, [file])
 
-  // Accept common short-form video types
+  const canSubmit = useMemo(
+    () => Boolean(file && title.trim().length > 0 && !isUploading && videoUrl),
+    [file, title, isUploading, videoUrl]
+  )
+
   const ACCEPT_TYPES = "video/mp4,video/webm,video/quicktime"
   const MAX_SIZE_MB = 100
+
+  function resetForm() {
+    setFile(null)
+    if (previewURL) URL.revokeObjectURL(previewURL)
+    setPreviewURL(null)
+    setTitle("")
+    setDescription("")
+    setPrivacy("public")
+    setVideoUrl("")
+    setProgress(0)
+    setError(null)
+    setIsUploading(false)
+  }
 
   function onPickFile(f: File) {
     setError(null)
@@ -64,6 +85,7 @@ export default function UploadReel() {
       setError(`File too large. Max size is ${MAX_SIZE_MB}MB.`)
       return
     }
+
     setFile(f)
     if (previewURL) URL.revokeObjectURL(previewURL)
     setPreviewURL(URL.createObjectURL(f))
@@ -71,44 +93,33 @@ export default function UploadReel() {
   }
 
   async function authenticator() {
-    const res = await fetch("/api/upload-auth")
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(`Auth failed: ${res.status} ${text}`)
+    try {
+      return await apiClient.uploadAuth()
+    } catch (err) {
+      console.error(err)
+      throw new Error("Internal server error")
     }
-    const { signature, expire, token, publicKey } = await res.json()
-    return { signature, expire, token, publicKey }
   }
 
-  async function handleSubmit(e?: React.FormEvent) {
-    e?.preventDefault()
+  async function handleSubmit() {
+    if (!file) return
+
     setError(null)
-
-    if (!file) {
-      setError("Please select a file to upload.")
-      return
-    }
-
     setIsUploading(true)
     setProgress(0)
 
     try {
       const { signature, expire, token, publicKey } = await authenticator()
-
-      // Create new controller per upload
       const controller = new AbortController()
       abortRef.current = controller
 
-      await upload({
+      const res = await upload({
         expire,
         token,
         signature,
         publicKey,
         file,
         fileName: file.name,
-        // Optional: add metadata (uncomment if you handle it server-side/ImageKit)
-        // tags: [privacy],
-        // useUniqueFileName: true,
         onProgress: (evt) => {
           if (evt.total) {
             setProgress(Math.round((evt.loaded / evt.total) * 100))
@@ -117,26 +128,42 @@ export default function UploadReel() {
         abortSignal: controller.signal,
       })
 
-      // Reset or keep as needed
+      setVideoUrl(res.filePath!)
       setIsUploading(false)
       setProgress(100)
-      // You can add success toast or callback here
-      // e.g., onUploaded?.()
     } catch (err: unknown) {
       setIsUploading(false)
-      if (err instanceof ImageKitAbortError) {
-        setError("Upload canceled.")
-      } else if (err instanceof ImageKitInvalidRequestError) {
-        setError(`Invalid request: ${err.message}`)
-      } else if (err instanceof ImageKitUploadNetworkError) {
-        setError(`Network error: ${err.message}`)
-      } else if (err instanceof ImageKitServerError) {
-        setError(`Server error: ${err.message}`)
-      } else if (err instanceof Error) {
-        setError(err.message || "Upload failed.")
+      if (err instanceof ImageKitAbortError) setError("Upload canceled.")
+      else if (err instanceof ImageKitInvalidRequestError) setError(`Invalid request: ${err.message}`)
+      else if (err instanceof ImageKitUploadNetworkError) setError(`Network error: ${err.message}`)
+      else if (err instanceof ImageKitServerError) setError(`Server error: ${err.message}`)
+      else if (err instanceof Error) setError(err.message || "Upload failed.")
+      else setError("Upload failed.")
+    }
+  }
+
+  async function handleFormSubmit(e?: React.FormEvent) {
+    e?.preventDefault()
+
+    if (!videoUrl) {
+      setError("Please wait for the video to finish uploading.")
+      return
+    }
+
+    try {
+      setIsUploading(true)
+      const res = await apiClient.createVideo({ title, description, videoUrl })
+
+      if (res.success) {
+        toast.success(res.message)
+        resetForm()
       } else {
-        setError("Upload failed.")
+        throw new Error(res.message)
       }
+    } catch (err) {
+      console.error(err)
+      setError("Internal Server Error")
+      setIsUploading(false)
     }
   }
 
@@ -148,9 +175,8 @@ export default function UploadReel() {
 
   function onDrop(e: React.DragEvent) {
     e.preventDefault()
-    e.stopPropagation()
     setIsDragging(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) onPickFile(e.dataTransfer.files[0])
+    if (e.dataTransfer.files?.[0]) onPickFile(e.dataTransfer.files[0])
   }
 
   return (
@@ -163,10 +189,10 @@ export default function UploadReel() {
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[560px]">
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleFormSubmit} className="space-y-5">
           <DialogHeader>
-            <DialogTitle className="text-pretty">Upload your reel</DialogTitle>
-            <DialogDescription className="text-pretty">
+            <DialogTitle>Upload your reel</DialogTitle>
+            <DialogDescription>
               Share short videos with your audience. MP4, WEBM, or MOV. Up to {MAX_SIZE_MB}MB.
             </DialogDescription>
           </DialogHeader>
@@ -188,11 +214,9 @@ export default function UploadReel() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                   <Video className="h-6 w-6" />
                 </div>
-                <div className="space-y-1">
-                  <p className="font-medium">Drag and drop your video here</p>
-                  <p className="text-sm text-muted-foreground">or click to browse</p>
-                </div>
-                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="mt-1">
+                <p className="font-medium">Drag and drop your video here</p>
+                <p className="text-sm text-muted-foreground">or click to browse</p>
+                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                   Choose file
                 </Button>
                 <input
@@ -200,19 +224,15 @@ export default function UploadReel() {
                   type="file"
                   accept={ACCEPT_TYPES}
                   className="sr-only"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) onPickFile(f)
-                  }}
+                  onChange={(e) => e.target.files?.[0] && onPickFile(e.target.files[0])}
                 />
               </div>
             ) : (
               <div className="flex items-start gap-3">
-                {/* Simple preview container */}
                 <div className="relative aspect-[9/16] w-28 overflow-hidden rounded-md bg-black/5">
-                  {previewURL ? (
+                  {previewURL && (
                     <video src={previewURL} className="h-full w-full object-cover" muted controls preload="metadata" />
-                  ) : null}
+                  )}
                 </div>
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center justify-between">
@@ -226,12 +246,7 @@ export default function UploadReel() {
                       type="button"
                       variant="ghost"
                       className="h-8 w-8 p-0"
-                      onClick={() => {
-                        setFile(null)
-                        if (previewURL) URL.revokeObjectURL(previewURL)
-                        setPreviewURL(null)
-                        setProgress(0)
-                      }}
+                      onClick={resetForm}
                       aria-label="Remove selected file"
                     >
                       <X className="h-4 w-4" />
@@ -247,7 +262,7 @@ export default function UploadReel() {
                       />
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{isUploading ? "Uploading…" : progress === 0 ? "Ready" : "Processing…"}</span>
+                      <span>{isUploading ? "Uploading…" : progress === 100 ? "Uploaded" : "Ready"}</span>
                       <span>{progress}%</span>
                     </div>
                   </div>
@@ -256,6 +271,7 @@ export default function UploadReel() {
             )}
           </div>
 
+          {/* Title / Description / Privacy */}
           <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="title">Title</Label>
@@ -269,38 +285,38 @@ export default function UploadReel() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="caption">Caption</Label>
+              <Label htmlFor="description">Description</Label>
               <textarea
-                id="caption"
+                id="description"
                 placeholder="Say something about your reel…"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm outline-none ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="min-h-20 w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm"
                 maxLength={2200}
               />
-              <div className="flex justify-end text-xs text-muted-foreground">{caption.length}/2200</div>
+              <div className="flex justify-end text-xs text-muted-foreground">{description.length}/2200</div>
             </div>
 
-            <div className="grid gap-2">
+            {/* <div className="grid gap-2">
               <Label htmlFor="privacy">Visibility</Label>
               <select
                 id="privacy"
                 value={privacy}
                 onChange={(e) => setPrivacy(e.target.value as Privacy)}
-                className="h-9 rounded-md border bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="h-9 rounded-md border bg-background px-3 text-sm shadow-sm"
               >
                 <option value="public">Public</option>
                 <option value="private">Private</option>
               </select>
-            </div>
-          </div>
+            </div> */}
+          </div> 
 
-          {error ? (
+          {error && (
             <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
             </div>
-          ) : null}
+          )}
 
           <DialogFooter className="gap-2">
             <DialogClose asChild>
@@ -309,15 +325,15 @@ export default function UploadReel() {
               </Button>
             </DialogClose>
 
-            {isUploading ? (
+            {/* {isUploading && (
               <Button type="button" variant="secondary" onClick={cancelUpload}>
                 Cancel upload
               </Button>
-            ) : null}
+            )} */}
 
             <Button type="submit" disabled={!canSubmit} className="gap-2">
               {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
-              {isUploading ? "Uploading…" : file ? "Upload reel" : "Select a file"}
+              {isUploading ? "Uploading…" : "Upload reel"}
             </Button>
           </DialogFooter>
         </form>

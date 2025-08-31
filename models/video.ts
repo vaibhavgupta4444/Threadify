@@ -10,7 +10,6 @@ export interface videoInterface {
     title: string;
     description: string;
     videoUrl: string;
-    thumbnailUrl: string;
     controls?: boolean;
     transformation?: {
         height: number,
@@ -25,7 +24,6 @@ const videoSchema = new Schema<videoInterface>({
     title: { type: String, required: true },
     description: { type: String, required: true },
     videoUrl: { type: String, required: true },
-    thumbnailUrl: { type: String, required: true },
     controls: { type: Boolean, default: true },
     transformation: {
         height: { type: Number, dafault: videoDimension.height },
