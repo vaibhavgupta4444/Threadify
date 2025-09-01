@@ -1,7 +1,10 @@
-export type responseType = {
+import { videoInterface } from "../models/video"
+
+export interface responseType{
     success: boolean,
     message?: string,
-    data?:object
+    data?:object,
+    videos?:videoInterface[];
 }
 
 

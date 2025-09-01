@@ -12,7 +12,12 @@ export async function GET() {
             return NextResponse.json([], { status: 200 })
         }
 
-        return NextResponse.json(videos, { status: 200 })
+        return NextResponse.json({
+            success:true,
+            message:"Video data fetched successfully",
+            videos
+        },
+        { status: 200 })
 
     } catch (error) {
         return NextResponse.json({
@@ -37,7 +42,7 @@ export async function POST(request: NextRequest) {
         const body: videoInterface = await request.json();
         if (!body.title ||
             !body.description ||
-            !body.videoUrl 
+            !body.videoUrl
         ) {
             return NextResponse.json({
                 success: false,

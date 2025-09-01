@@ -1,12 +1,37 @@
+"use client"
+
 import { Navbar } from "./components/Navbar"
 import { PostCard } from "./components/PostCard"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Compass, Users, Upload } from "lucide-react"
+import { Compass, Users } from "lucide-react"
 import UploadReel from "./components/UploadReel"
+import { useEffect, useState } from "react"
+import { apiClient } from "../../lib/app-client"
+import { videoInterface } from "../../models/video"
 
 export default function HomePage() {
+
+  const [post, setPost] = useState<videoInterface[]>([]);
+
+  const getVideos = async ()=>{
+    try{
+      const response = await apiClient.getVideos();
+      if(response.success && response.videos){
+        setPost([...response?.videos]);
+      }else{
+        setPost([]);
+      }
+    }catch(err){
+      console.log(err);
+    }
+  }
+
+  useEffect(()=>{
+    getVideos();
+  },[])
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -35,7 +60,7 @@ export default function HomePage() {
                       Following
                     </Link>
                   </Button>
-                  <UploadReel/>
+                  <UploadReel />
                 </nav>
               </Card>
             </aside>
@@ -53,30 +78,12 @@ export default function HomePage() {
               </Card>
 
               <div className="mt-6 space-y-6">
-                <PostCard
-                  author="Ayesha Khan"
-                  handle="@ayesha"
-                  time="2h"
-                  caption="A behind-the-scenes cut from my last shoot 🎬"
-                  likes={128}
-                  comments={24}
-                />
-                <PostCard
-                  author="Leo Martin"
-                  handle="@leom"
-                  time="5h"
-                  caption="Trying a new transition—what do you think?"
-                  likes={86}
-                  comments={12}
-                />
-                <PostCard
-                  author="Nora Patel"
-                  handle="@norap"
-                  time="1d"
-                  caption="Color grading makes everything pop!"
-                  likes={243}
-                  comments={58}
-                />
+                { post &&
+                  post.map(d => <PostCard
+                  key={d._id.toString()}
+                  {...d}
+                />)
+                }
               </div>
             </section>
 

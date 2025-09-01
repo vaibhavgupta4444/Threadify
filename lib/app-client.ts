@@ -11,6 +11,7 @@ type fetchOptions = {
     headers?: Record<string, string>
 }
 
+
 class ApiClient {
 
     private async Fetch<T>(
@@ -54,14 +55,21 @@ class ApiClient {
         return this.Fetch<uploadAuthInterface>("/upload-auth");
     }
 
-    async getVideos() {
-        return this.Fetch<videoInterface>('/videos');
+    async getVideos<T = responseType>(){
+        return this.Fetch<T>('/videos');
     }
 
     async createVideo<T = responseType>(videoData: videoFormData) {
         return this.Fetch<T>("/videos", {
             method: "POST",
             body: videoData
+        })
+    }
+
+    async checkUsername<T = responseType>(username:string){
+        return this.Fetch<T>("/check-username", {
+            method: "POST",
+            body: username
         })
     }
 }

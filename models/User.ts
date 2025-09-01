@@ -3,6 +3,11 @@ import bcrypt from "bcryptjs";
 
 export interface UserInterface{
     _id?:mongoose.Types.ObjectId;
+    profilePic?: string,
+    username:string;
+    firstName?:string;
+    lastName?:string;
+    contactNo: string;
     email:string;
     password:string;
     createdAt?:Date;
@@ -10,7 +15,9 @@ export interface UserInterface{
 }
 
 const userSchema = new Schema<UserInterface>({
+    username:{type:String,required:true,unique:true},
     email:{type:String,required:true,unique:true},
+    contactNo:{type:String,required:true},
     password:{type:String,required:true}
 },{timestamps:true})
 

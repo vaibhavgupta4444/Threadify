@@ -5,12 +5,12 @@ import dbConnect from "../../../../../lib/dbConnection";
 export async function POST(request: NextRequest) {
     try {
         
-        const { email, password } = await request.json();
+        const { username, email, contactNo, password } = await request.json();
  
-        if (!email || !password) {
+        if (!email || !password || !username || !contactNo) {
             return NextResponse.json({
                 success: false,
-                message: "Email or Password is missing"
+                message: "Required data is missing"
             }, { status: 400 })
         }
 
@@ -25,7 +25,9 @@ export async function POST(request: NextRequest) {
         }
 
         const newUser = new User({
+            username,
             email,
+            contactNo,
             password
         })
 
