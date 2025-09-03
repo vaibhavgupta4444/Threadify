@@ -176,11 +176,15 @@ export function Navbar() {
                             </>
                         ) : (
                             <>
-                                <div className="my-2 h-px bg-border" />
-                                <Link href="/login" className="w-full justify-start">
-                                    Log in
-                                </Link>
-                                <Link href="/register" className="mt-2 w-full">Register Now</Link>
+                                <div className="my-2 h-px" />
+                                <button className="w-full justify-start bg-primary text-primary-foreground rounded-md py-0.5 hover:opacity-90">
+                                    <Link href="/login">
+                                        Log In
+                                    </Link>
+                                </button>
+                                <button className="mt-2 w-full bg-primary text-primary-foreground rounded-md py-0.5 hover:opacity-90">
+                                    <Link href="/register" >Register Now</Link>
+                                </button>
                             </>
                         )}
                     </div>

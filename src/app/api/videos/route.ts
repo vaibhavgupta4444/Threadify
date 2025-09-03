@@ -3,27 +3,42 @@ import dbConnect from "../../../../lib/dbConnection";
 import Video, { videoInterface } from "../../../../models/video";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/authOptions";
+import User from "../../../../models/User";
 
 export async function GET() {
     try {
         await dbConnect();
-        const videos = await Video.find({}).sort({ createdAt: -1 }).lean();
+      
+        const videos = await Video.find({})
+            .sort({ createdAt: -1 })
+            .populate({
+                path: 'userId',
+                select: 'username',
+                model: User
+            })
+            .lean();
+
         if (!videos || videos.length === 0) {
-            return NextResponse.json([], { status: 200 })
+            return NextResponse.json([], { status: 200 });
         }
 
+        const videosWithUsername = videos.map(video => ({
+            ...video,
+            likeCount: video.likes?.length || 0,
+            username: video.userId?.username || 'Unknown User'
+        }));
+
         return NextResponse.json({
-            success:true,
-            message:"Video data fetched successfully",
-            videos
-        },
-        { status: 200 })
+            success: true,
+            message: "Video data fetched successfully",
+            videos: videosWithUsername
+        }, { status: 200 });
 
     } catch (error) {
         return NextResponse.json({
             success: false,
-            message: error
-        }, { status: 500 })
+            message: error 
+        }, { status: 500 });
     }
 }
 
@@ -40,7 +55,8 @@ export async function POST(request: NextRequest) {
         await dbConnect();
 
         const body: videoInterface = await request.json();
-        if (!body.title ||
+        if (!body.userId ||
+            !body.title ||
             !body.description ||
             !body.videoUrl
         ) {
@@ -60,12 +76,11 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const response = await Video.create(videoData);
+        await Video.create(videoData);
 
         return NextResponse.json({
             success: true,
             message: "You just uploaded a reel",
-            data: response
         }, { status: 200 });
 
     } catch (error) {

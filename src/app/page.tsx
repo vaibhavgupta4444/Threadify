@@ -1,6 +1,5 @@
 "use client"
 
-import { Navbar } from "./components/Navbar"
 import { PostCard } from "./components/PostCard"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,30 +10,31 @@ import { useEffect, useState } from "react"
 import { apiClient } from "../../lib/app-client"
 import { videoInterface } from "../../models/video"
 
+
 export default function HomePage() {
 
   const [post, setPost] = useState<videoInterface[]>([]);
 
-  const getVideos = async ()=>{
-    try{
+  const getVideos = async () => {
+    try {
       const response = await apiClient.getVideos();
-      if(response.success && response.videos){
+      if (response.success && response.videos) {
         setPost([...response?.videos]);
-      }else{
+        console.log(post);
+      } else {
         setPost([]);
       }
-    }catch(err){
+    } catch (err) {
       console.log(err);
     }
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     getVideos();
-  },[])
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <main className="pt-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
@@ -78,11 +78,11 @@ export default function HomePage() {
               </Card>
 
               <div className="mt-6 space-y-6">
-                { post &&
+                {post &&
                   post.map(d => <PostCard
-                  key={d._id.toString()}
-                  {...d}
-                />)
+                    key={d._id.toString()}
+                    {...d}
+                  />)
                 }
               </div>
             </section>

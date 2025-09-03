@@ -14,3 +14,10 @@ export interface uploadAuthInterface{
     signature: string,
     publicKey: string
 }
+
+export interface updateProfileInterface{
+    userId:string | undefined;
+    profilePic:string;
+    firstName:string;
+    lastName:string;
+}

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Heart, MessageCircle, Share2, MoreHorizontal, Volume2, VolumeX, Pause, Play } from "lucide-react"
 import { videoInterface } from "../../../models/video"
+import { Badge } from "@/components/ui/badge"
 
 
 
@@ -32,11 +33,11 @@ function timeAgo(input: string | Date) {
 }
 
 export function PostCard(props: videoInterface) {
-  const { title, description, updatedAt, transformation, videoUrl } = props
+  const { username, title, description, updatedAt, transformation, videoUrl, likeCount } = props
 
   // Like state
   const [liked, setLiked] = useState(false)
-  const [likeCount, setLikeCount] = useState(liked)
+  const [likesCount, setLikesCount] = useState(likeCount)
 
   // Video state
   const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -186,14 +187,14 @@ export function PostCard(props: videoInterface) {
             <AvatarFallback>{(author?.name || title || "U").slice(0, 1).toUpperCase()}</AvatarFallback>
           </Avatar> */}
           <div className="min-w-0">
-            {/* <div className="flex items-center gap-2">
-              <p className="truncate font-medium text-foreground">{author?.name || title}</p>
-              {author?.handle ? (
+            <div className="flex items-center gap-2">
+              <p className="truncate font-medium text-foreground">{title}</p>
+              {username ? (
                 <Badge variant="secondary" className="rounded-full">
-                  {author.handle}
+                  {username}
                 </Badge>
               ) : null}
-            </div> */}
+            </div>
             <p className="text-sm text-muted-foreground">{timeAgo(updatedAt)}</p>
           </div>
         </div>

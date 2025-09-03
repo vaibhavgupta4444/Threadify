@@ -97,7 +97,7 @@ const Page = () => {
 
                         <Button
                             type="submit"
-                            className="w-full bg-amber-500 text-white hover:bg-amber-600"
+                            className="w-full bg-primary text-white hover:opacity-90"
                         >
                             Submit
                         </Button>

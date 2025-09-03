@@ -24,15 +24,17 @@ import { Label } from "@/components/ui/label"
 import { Loader2, UploadCloud, Video, X } from "lucide-react"
 import { apiClient } from "../../../lib/app-client"
 import { toast } from "sonner"
+import { useSession } from "next-auth/react"
+import { useRouter } from 'next/navigation'
 
-type Privacy = "public" | "private"
+// type Privacy = "public" | "private"
 
 export default function UploadReel() {
   const [file, setFile] = useState<File | null>(null)
   const [previewURL, setPreviewURL] = useState<string | null>(null)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [privacy, setPrivacy] = useState<Privacy>("public")
+  // const [privacy, setPrivacy] = useState<Privacy>("public")
   const [videoUrl, setVideoUrl] = useState("")
   const [progress, setProgress] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -42,7 +44,11 @@ export default function UploadReel() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
 
+  const router = useRouter();
+
   // Revoke preview URL on cleanup
+  const { data: userData } = useSession();
+
   useEffect(() => {
     return () => {
       if (previewURL) URL.revokeObjectURL(previewURL)
@@ -68,11 +74,16 @@ export default function UploadReel() {
     setPreviewURL(null)
     setTitle("")
     setDescription("")
-    setPrivacy("public")
+    // setPrivacy("public")
     setVideoUrl("")
     setProgress(0)
     setError(null)
     setIsUploading(false)
+    // Abort any ongoing upload
+    if (abortRef.current) {
+      abortRef.current.abort()
+      abortRef.current = null
+    }
   }
 
   function onPickFile(f: File) {
@@ -92,6 +103,16 @@ export default function UploadReel() {
     setProgress(0)
   }
 
+  function cancelUpload() {
+    if (abortRef.current) {
+      abortRef.current.abort()
+      abortRef.current = null
+      setIsUploading(false)
+      setProgress(0)
+      setError("Upload canceled.")
+    }
+  }
+
   async function authenticator() {
     try {
       return await apiClient.uploadAuth()
@@ -103,7 +124,11 @@ export default function UploadReel() {
 
   async function handleSubmit() {
     if (!file) return
-
+    if (!userData?.user) {
+      setError("Please login to upload Post");
+      setTimeout(()=> router.replace('/login'),1000);
+      return;
+    }
     setError(null)
     setIsUploading(true)
     setProgress(0)
@@ -118,6 +143,7 @@ export default function UploadReel() {
         token,
         signature,
         publicKey,
+        folder: `/post/${userData?.user.id}`,
         file,
         fileName: file.name,
         onProgress: (evt) => {
@@ -131,14 +157,19 @@ export default function UploadReel() {
       setVideoUrl(res.filePath!)
       setIsUploading(false)
       setProgress(100)
+      abortRef.current = null // Clear the abort controller after successful upload
     } catch (err: unknown) {
       setIsUploading(false)
-      if (err instanceof ImageKitAbortError) setError("Upload canceled.")
-      else if (err instanceof ImageKitInvalidRequestError) setError(`Invalid request: ${err.message}`)
+      if (err instanceof ImageKitAbortError) {
+        setError("Upload canceled.")
+        setProgress(0)
+      } else if (err instanceof ImageKitInvalidRequestError) setError(`Invalid request: ${err.message}`)
       else if (err instanceof ImageKitUploadNetworkError) setError(`Network error: ${err.message}`)
       else if (err instanceof ImageKitServerError) setError(`Server error: ${err.message}`)
       else if (err instanceof Error) setError(err.message || "Upload failed.")
       else setError("Upload failed.")
+      
+      abortRef.current = null // Clear the abort controller on error
     }
   }
 
@@ -152,7 +183,7 @@ export default function UploadReel() {
 
     try {
       setIsUploading(true)
-      const res = await apiClient.createVideo({ title, description, videoUrl })
+      const res = await apiClient.createVideo({ userId: userData?.user.id!, title, description, videoUrl })
 
       if (res.success) {
         toast.success(res.message)
@@ -165,12 +196,6 @@ export default function UploadReel() {
       setError("Internal Server Error")
       setIsUploading(false)
     }
-  }
-
-  function cancelUpload() {
-    abortRef.current?.abort()
-    abortRef.current = null
-    setIsUploading(false)
   }
 
   function onDrop(e: React.DragEvent) {
@@ -310,7 +335,7 @@ export default function UploadReel() {
                 <option value="private">Private</option>
               </select>
             </div> */}
-          </div> 
+          </div>
 
           {error && (
             <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -320,16 +345,16 @@ export default function UploadReel() {
 
           <DialogFooter className="gap-2">
             <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={isUploading}>
+              <Button type="button" variant="outline" disabled={isUploading} onClick={cancelUpload}>
                 Close
               </Button>
             </DialogClose>
 
-            {/* {isUploading && (
+            {isUploading && !videoUrl && (
               <Button type="button" variant="secondary" onClick={cancelUpload}>
                 Cancel upload
               </Button>
-            )} */}
+            )}
 
             <Button type="submit" disabled={!canSubmit} className="gap-2">
               {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}

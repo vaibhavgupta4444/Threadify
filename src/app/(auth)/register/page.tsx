@@ -21,6 +21,7 @@ import { z } from 'zod'
 import { apiClient } from '../../../../lib/app-client'
 import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { signIn } from 'next-auth/react'
 
 const Page = () => {
 
@@ -66,8 +67,13 @@ const Page = () => {
     try {
       const response = await apiClient.register({ username: data.username, email: data.email, contactNo: data.contactNo, password: data.password });
       if (response.success) {
+        await signIn('credentials', {
+                redirect: false,
+                email: data.email,
+                password: data.password,
+            })
         toast.success(response.message);
-        router.push('/login');
+        router.push('/update-profile');
       }
     } catch (error) {
       console.log(error);
@@ -188,7 +194,7 @@ const Page = () => {
 
             <Button
               type="submit"
-              className="w-full bg-amber-500 text-white hover:bg-amber-600"
+              className="w-full bg-primary text-white hover:opacity-90"
             >
               Submit
             </Button>

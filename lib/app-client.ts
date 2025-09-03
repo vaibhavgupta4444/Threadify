@@ -1,6 +1,5 @@
 import { UserInterface } from "../models/User";
-import { videoInterface } from "../models/video";
-import { responseType, uploadAuthInterface } from "../types/responseType";
+import { responseType, updateProfileInterface, uploadAuthInterface } from "../types/responseType";
 import { videoFormData } from "../types/videoFormData";
 
 export type userFormData = Omit<UserInterface, "_id">;
@@ -70,6 +69,13 @@ class ApiClient {
         return this.Fetch<T>("/check-username", {
             method: "POST",
             body: username
+        })
+    }
+
+    async updateProfile<T = responseType>(userData :updateProfileInterface){
+         return this.Fetch<T>("/update-profile", {
+            method: "PUT",
+            body: userData
         })
     }
 }

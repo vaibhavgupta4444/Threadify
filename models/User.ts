@@ -15,8 +15,11 @@ export interface UserInterface{
 }
 
 const userSchema = new Schema<UserInterface>({
+    profilePic:{type:String,default:""},
     username:{type:String,required:true,unique:true},
     email:{type:String,required:true,unique:true},
+    firstName:{type:String,default:""},
+    lastName:{type:String,default:""},
     contactNo:{type:String,required:true},
     password:{type:String,required:true}
 },{timestamps:true})
