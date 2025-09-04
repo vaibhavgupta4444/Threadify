@@ -5,22 +5,22 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Compass, Users } from "lucide-react"
-import UploadReel from "./components/UploadReel"
+import UploadPost from "./components/UploadPost"
 import { useEffect, useState } from "react"
 import { apiClient } from "../../lib/app-client"
-import { videoInterface } from "../../models/video"
+import { postInterface } from "../../models/Post"
 
 
 export default function HomePage() {
 
-  const [post, setPost] = useState<videoInterface[]>([]);
+  const [post, setPost] = useState<postInterface[]>([]);
 
-  const getVideos = async () => {
+  const getPosts = async () => {
     try {
-      const response = await apiClient.getVideos();
-      if (response.success && response.videos) {
-        setPost([...response?.videos]);
-        console.log(post);
+      const response = await apiClient.getPosts();
+      if (response.success && response.posts) {
+        setPost([...response?.posts]);
+        // console.log(post);
       } else {
         setPost([]);
       }
@@ -30,7 +30,7 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    getVideos();
+    getPosts();
   }, [])
 
   return (
@@ -60,7 +60,7 @@ export default function HomePage() {
                       Following
                     </Link>
                   </Button>
-                  <UploadReel />
+                  <UploadPost />
                 </nav>
               </Card>
             </aside>
@@ -73,7 +73,7 @@ export default function HomePage() {
                   <p className="text-sm text-muted-foreground">
                     Share a new reel or update — let your creativity shine!
                   </p>
-                  <UploadReel />
+                  <UploadPost />
                 </div>
               </Card>
 

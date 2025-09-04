@@ -29,13 +29,13 @@ import { useRouter } from 'next/navigation'
 
 // type Privacy = "public" | "private"
 
-export default function UploadReel() {
+export default function UploadPost() {
   const [file, setFile] = useState<File | null>(null)
   const [previewURL, setPreviewURL] = useState<string | null>(null)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   // const [privacy, setPrivacy] = useState<Privacy>("public")
-  const [videoUrl, setVideoUrl] = useState("")
+  const [mediaUrl, setMediaUrl] = useState("")
   const [progress, setProgress] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -61,8 +61,8 @@ export default function UploadReel() {
   }, [file])
 
   const canSubmit = useMemo(
-    () => Boolean(file && title.trim().length > 0 && !isUploading && videoUrl),
-    [file, title, isUploading, videoUrl]
+    () => Boolean(file && title.trim().length > 0 && !isUploading && mediaUrl),
+    [file, title, isUploading, mediaUrl]
   )
 
   const ACCEPT_TYPES = "video/mp4,video/webm,video/quicktime"
@@ -75,7 +75,7 @@ export default function UploadReel() {
     setTitle("")
     setDescription("")
     // setPrivacy("public")
-    setVideoUrl("")
+    setMediaUrl("")
     setProgress(0)
     setError(null)
     setIsUploading(false)
@@ -154,7 +154,7 @@ export default function UploadReel() {
         abortSignal: controller.signal,
       })
 
-      setVideoUrl(res.filePath!)
+      setMediaUrl(res.filePath!)
       setIsUploading(false)
       setProgress(100)
       abortRef.current = null // Clear the abort controller after successful upload
@@ -176,14 +176,14 @@ export default function UploadReel() {
   async function handleFormSubmit(e?: React.FormEvent) {
     e?.preventDefault()
 
-    if (!videoUrl) {
-      setError("Please wait for the video to finish uploading.")
+    if (!mediaUrl) {
+      setError("Please wait for the Post to finish uploading.")
       return
     }
 
     try {
       setIsUploading(true)
-      const res = await apiClient.createVideo({ userId: userData?.user.id!, title, description, videoUrl })
+      const res = await apiClient.createPost({ userId: userData?.user.id!, title, description, mediaUrl })
 
       if (res.success) {
         toast.success(res.message)
@@ -216,7 +216,7 @@ export default function UploadReel() {
       <DialogContent className="sm:max-w-[560px]">
         <form onSubmit={handleFormSubmit} className="space-y-5">
           <DialogHeader>
-            <DialogTitle>Upload your reel</DialogTitle>
+            <DialogTitle>Upload your post</DialogTitle>
             <DialogDescription>
               Share short videos with your audience. MP4, WEBM, or MOV. Up to {MAX_SIZE_MB}MB.
             </DialogDescription>
@@ -239,7 +239,7 @@ export default function UploadReel() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                   <Video className="h-6 w-6" />
                 </div>
-                <p className="font-medium">Drag and drop your video here</p>
+                <p className="font-medium">Drag and drop your post here</p>
                 <p className="text-sm text-muted-foreground">or click to browse</p>
                 <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                   Choose file
@@ -350,7 +350,7 @@ export default function UploadReel() {
               </Button>
             </DialogClose>
 
-            {isUploading && !videoUrl && (
+            {isUploading && !mediaUrl && (
               <Button type="button" variant="secondary" onClick={cancelUpload}>
                 Cancel upload
               </Button>

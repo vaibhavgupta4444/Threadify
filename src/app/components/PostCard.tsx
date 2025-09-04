@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button"
 // import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { Heart, MessageCircle, Share2, MoreHorizontal, Volume2, VolumeX, Pause, Play } from "lucide-react"
-import { videoInterface } from "../../../models/video"
+import { postInterface } from "../../../models/Post"
 import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useSession } from "next-auth/react"
 
 
 
@@ -32,28 +34,35 @@ function timeAgo(input: string | Date) {
   return `${years}y`
 }
 
-export function PostCard(props: videoInterface) {
-  const { username, title, description, updatedAt, transformation, videoUrl, likeCount } = props
+export function PostCard(props: postInterface) {
+
+  const {data:userData} = useSession();
+  const { username, title, description, updatedAt, transformation, mediaUrl, likes } = props
 
   // Like state
   const [liked, setLiked] = useState(false)
-  const [likesCount, setLikesCount] = useState(likeCount)
+  const [likesCount, setLikesCount] = useState<number>(likes!)
 
   // Video state
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(true)
   const [isMuted, setIsMuted] = useState(true)
-  const [progress, setProgress] = useState(0) // 0 - 100
+  const [progress, setProgress] = useState(0)
   const [showOverlayIcon, setShowOverlayIcon] = useState<"play" | "pause" | null>(null)
 
   // Double-tap like animation
   const [burst, setBurst] = useState(false)
   const lastTapRef = useRef<number | null>(null)
 
+  const profileUrl = useMemo(() => {
+    // mirrors the original source domain + path
+    return `https://ik.imagekit.io/threadify${userData?.user.image}`
+  }, [mediaUrl])
+
   const src = useMemo(() => {
     // mirrors the original source domain + path
-    return `https://ik.imagekit.io/threadify${videoUrl}`
-  }, [videoUrl])
+    return `https://ik.imagekit.io/threadify${mediaUrl}`
+  }, [mediaUrl])
 
   useEffect(() => {
     const v = videoRef.current
@@ -164,28 +173,22 @@ export function PostCard(props: videoInterface) {
   )
 
   const toggleLike = useCallback(() => {
-    setLiked((prev) => {
-      if (prev) {
-        // setLikeCount((c) => Math.max(0, c - 1))
-      } else {
-        // setLikeCount((c) => c + 1)
-      }
-      return !prev
-    })
-  }, [])
+    setLiked((prev) => !prev);
+    setLikesCount((c) => liked ? c - 1 : c + 1);
+  }, [likesCount]);
 
   return (
     <Card className="overflow-hidden border bg-background">
       {/* Header (IG-like) */}
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
-          {/* <Avatar className="h-10 w-10">
+           <Avatar className="h-10 w-10">
             <AvatarImage
-              src={author?.avatarUrl || "/placeholder.svg?height=80&width=80&query=user%20avatar"}
-              alt={author?.name ? `${author.name} avatar` : "User avatar"}
+              src={``}
+              // alt={author?.name ? `${author.name} avatar` : "User avatar"}
             />
-            <AvatarFallback>{(author?.name || title || "U").slice(0, 1).toUpperCase()}</AvatarFallback>
-          </Avatar> */}
+            <AvatarFallback>{(username || title || "U").slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar> 
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <p className="truncate font-medium text-foreground">{title}</p>
@@ -298,7 +301,7 @@ export function PostCard(props: videoInterface) {
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" className="gap-2" aria-pressed={liked} onClick={toggleLike}>
             <Heart className={cn("h-5 w-5 transition-colors", liked ? "fill-primary text-primary" : "")} />
-            <span className="text-sm">{likeCount}</span>
+            <span className="text-sm">{likesCount}</span>
           </Button>
           <Button variant="ghost" size="sm" className="gap-2">
             <MessageCircle className="h-5 w-5" />

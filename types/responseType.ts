@@ -1,10 +1,10 @@
-import { videoInterface } from "../models/video"
+import { postInterface } from "../models/Post"
 
 export interface responseType{
     success: boolean,
     message?: string,
     data?:object,
-    videos?:videoInterface[];
+    posts?:postInterface[];
 }
 
 
@@ -20,4 +20,12 @@ export interface updateProfileInterface{
     profilePic:string;
     firstName:string;
     lastName:string;
+}
+
+
+export interface videoFormData{
+    userId : string,
+    title:string,
+    description:string,
+    mediaUrl:string
 }

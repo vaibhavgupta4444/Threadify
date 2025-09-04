@@ -1,20 +1,19 @@
 import { Schema, model, models, Types } from "mongoose";
 
-export const videoDimension = {
+export const postDimension = {
   width: 1080,
   height: 1920,
 } as const;
 
-export interface videoInterface {
+export interface postInterface {
   _id: Types.ObjectId;
   userId: string;
   username?: string;
   title: string;
   description: string;
-  videoUrl: string;
+  likes?: number;
+  mediaUrl: string;
   controls?: boolean;
-  likes: Types.ObjectId[];
-  likeCount?: number;
   transformation?: {
     height: number;
     width: number;
@@ -24,17 +23,17 @@ export interface videoInterface {
   updatedAt: Date;
 }
 
-const videoSchema = new Schema<videoInterface>(
+const postSchema = new Schema<postInterface>(
   {
     userId: { type: String, required: true },
     title: { type: String, required: true },
     description: { type: String, required: true },
-    videoUrl: { type: String, required: true },
+    likes: {type:Number, default: 0},
+    mediaUrl: { type: String, required: true },
     controls: { type: Boolean, default: true },
-    likes: [{ type: Schema.Types.ObjectId, ref: "User" }], 
     transformation: {
-      height: { type: Number, default: videoDimension.height },
-      width: { type: Number, default: videoDimension.width },
+      height: { type: Number, default: postDimension.height },
+      width: { type: Number, default: postDimension.width },
       quality: { type: Number, min: 1, max: 100, default: 80 },
     },
   },
@@ -42,6 +41,6 @@ const videoSchema = new Schema<videoInterface>(
 );
 
 
-const Video = models?.Video || model<videoInterface>("Video", videoSchema);
+const Post = models?.Post || model<postInterface>("Post", postSchema);
 
-export default Video;
+export default Post;

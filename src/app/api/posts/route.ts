@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "../../../../lib/dbConnection";
-import Video, { videoInterface } from "../../../../models/video";
+import Post, { postInterface } from "../../../../models/Post";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/authOptions";
 import User from "../../../../models/User";
@@ -9,7 +9,7 @@ export async function GET() {
     try {
         await dbConnect();
       
-        const videos = await Video.find({})
+        const posts = await Post.find({})
             .sort({ createdAt: -1 })
             .populate({
                 path: 'userId',
@@ -18,20 +18,18 @@ export async function GET() {
             })
             .lean();
 
-        if (!videos || videos.length === 0) {
+        if (!posts || posts.length === 0) {
             return NextResponse.json([], { status: 200 });
         }
 
-        const videosWithUsername = videos.map(video => ({
-            ...video,
-            likeCount: video.likes?.length || 0,
-            username: video.userId?.username || 'Unknown User'
+        const postsWithUsername = posts.map(post => ({
+            ...post,
+            username: post.userId?.username || 'Unknown User'
         }));
 
         return NextResponse.json({
             success: true,
-            message: "Video data fetched successfully",
-            videos: videosWithUsername
+            posts: postsWithUsername
         }, { status: 200 });
 
     } catch (error) {
@@ -54,11 +52,11 @@ export async function POST(request: NextRequest) {
 
         await dbConnect();
 
-        const body: videoInterface = await request.json();
+        const body: postInterface = await request.json();
         if (!body.userId ||
             !body.title ||
             !body.description ||
-            !body.videoUrl
+            !body.mediaUrl
         ) {
             return NextResponse.json({
                 success: false,
@@ -66,7 +64,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 })
         }
 
-        const videoData: videoInterface = {
+        const postData: postInterface = {
             ...body,
             controls: body.controls ?? true,
             transformation: {
@@ -76,7 +74,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        await Video.create(videoData);
+        await Post.create(postData);
 
         return NextResponse.json({
             success: true,

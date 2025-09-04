@@ -1,6 +1,7 @@
+import { likeInterface } from "../models/Like";
 import { UserInterface } from "../models/User";
-import { responseType, updateProfileInterface, uploadAuthInterface } from "../types/responseType";
-import { videoFormData } from "../types/videoFormData";
+import { responseType, updateProfileInterface, uploadAuthInterface, videoFormData } from "../types/responseType";
+
 
 export type userFormData = Omit<UserInterface, "_id">;
 
@@ -50,21 +51,6 @@ class ApiClient {
         })
     }
 
-    async uploadAuth(){
-        return this.Fetch<uploadAuthInterface>("/upload-auth");
-    }
-
-    async getVideos<T = responseType>(){
-        return this.Fetch<T>('/videos');
-    }
-
-    async createVideo<T = responseType>(videoData: videoFormData) {
-        return this.Fetch<T>("/videos", {
-            method: "POST",
-            body: videoData
-        })
-    }
-
     async checkUsername<T = responseType>(username:string){
         return this.Fetch<T>("/check-username", {
             method: "POST",
@@ -76,6 +62,31 @@ class ApiClient {
          return this.Fetch<T>("/update-profile", {
             method: "PUT",
             body: userData
+        })
+    }
+
+        async uploadAuth(){
+        return this.Fetch<uploadAuthInterface>("/upload-auth");
+    }
+
+
+    //Post related section
+
+    async getPosts<T = responseType>(){
+        return this.Fetch<T>('/posts');
+    }
+
+    async createPost<T = responseType>(videoData: videoFormData) {
+        return this.Fetch<T>("/posts", {
+            method: "POST",
+            body: videoData
+        })
+    }
+
+    async likePost<T = responseType>(data: likeInterface){
+        return this.Fetch<T>("/likes",{
+            method: "POST",
+            body: data
         })
     }
 }
