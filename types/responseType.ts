@@ -17,7 +17,7 @@ export interface uploadAuthInterface{
 
 export interface updateProfileInterface{
     userId:string | undefined;
-    profilePic:string;
+    image:string;
     firstName:string;
     lastName:string;
 }

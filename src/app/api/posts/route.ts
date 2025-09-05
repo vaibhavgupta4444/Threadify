@@ -8,12 +8,12 @@ import User from "../../../../models/User";
 export async function GET() {
     try {
         await dbConnect();
-      
+
         const posts = await Post.find({})
             .sort({ createdAt: -1 })
             .populate({
                 path: 'userId',
-                select: 'username',
+                select: 'username image',
                 model: User
             })
             .lean();
@@ -22,10 +22,13 @@ export async function GET() {
             return NextResponse.json([], { status: 200 });
         }
 
-        const postsWithUsername = posts.map(post => ({
-            ...post,
-            username: post.userId?.username || 'Unknown User'
-        }));
+        const postsWithUsername = posts.map(post => {
+            return {
+                ...post,
+                username: post.userId?.username || 'Unknown User',
+                userProfilePic: post.userId?.image || "/file.png"
+            };
+        });
 
         return NextResponse.json({
             success: true,
@@ -35,7 +38,7 @@ export async function GET() {
     } catch (error) {
         return NextResponse.json({
             success: false,
-            message: error 
+            message: error
         }, { status: 500 });
     }
 }

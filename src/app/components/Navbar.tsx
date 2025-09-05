@@ -64,10 +64,10 @@ export function Navbar() {
 
                         {isAuthenticated ? (
                             <>
-                                <Button className="gap-1">
+                                {/* <Button className="gap-1">
                                     <Plus className="h-5 w-5" />
                                     <span className="hidden sm:inline">Create</span>
-                                </Button>
+                                </Button> */}
 
                                 <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
                                     <Bell className="h-5 w-5" />
@@ -81,8 +81,8 @@ export function Navbar() {
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" className="gap-2">
                                             <Avatar className="h-8 w-8">
-                                                <AvatarImage src="/diverse-user-avatars.png" alt="User avatar" />
-                                                <AvatarFallback>U</AvatarFallback>
+                                                <AvatarImage src={`https://ik.imagekit.io/threadify${session.user?.image}`} alt="User avatar" />
+                                                <AvatarFallback>{(session.user.email || "U").slice(0, 1).toUpperCase()}</AvatarFallback>
                                             </Avatar>
                                             <span className="hidden sm:inline">You</span>
                                         </Button>
@@ -153,10 +153,10 @@ export function Navbar() {
 
                         {isAuthenticated ? (
                             <>
-                                <Button className="mt-1 w-full justify-start gap-2">
+                                {/* <Button className="mt-1 w-full justify-start gap-2">
                                     <Plus className="h-5 w-5" />
                                     Create
-                                </Button>
+                                </Button> */}
                                 <Button variant="ghost" className="mt-1 w-full justify-start gap-2">
                                     <Heart className="h-5 w-5" />
                                     Activity

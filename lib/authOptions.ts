@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
                     if (!user) {
                         throw new Error("User not found");
                     }
-               
+
                     const isValidPassword = await bcrypt.compare(credentials.password, user.password);
 
                     if (!isValidPassword) {
@@ -38,9 +38,8 @@ export const authOptions: NextAuthOptions = {
 
                     return {
                         id: user._id.toString(),
-                        username: user.username,
                         email: user.email,
-                        profilePic: user.profilePic
+                        image:user.image
                     }
 
 
@@ -51,16 +50,17 @@ export const authOptions: NextAuthOptions = {
         })],
     callbacks: {
         async jwt({ token, user }) {
-
             if (user) {
                 token.id = user.id;
+                token.picture = user.image
             }
             return token;
         },
         async session({ session, token }) {
 
             if (session.user) {
-                session.user.id = token.id as string
+                session.user.id = token.id as string;
+                session.user.image = token.picture;
             }
             return session;
         }

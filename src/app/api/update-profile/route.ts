@@ -29,7 +29,7 @@ export async function PUT(request: NextRequest) {
 
         if (firstName) updates.firstName = firstName;
         if (lastName) updates.lastName = lastName;
-        if (profilePic) updates.profilePic = profilePic;
+        if (profilePic) updates.image = profilePic;
 
 
         const updatedUser = await User.findByIdAndUpdate(

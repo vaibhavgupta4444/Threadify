@@ -115,7 +115,7 @@ const Page = () => {
     try {
       const response = await apiClient.updateProfile({
         userId: userData?.user.id,
-        profilePic: profilePicUrl,  
+        image: profilePicUrl,  
         firstName: data.firstName,
         lastName: data.lastName,
       })

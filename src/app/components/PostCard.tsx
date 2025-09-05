@@ -1,20 +1,24 @@
 "use client"
 
 import type React from "react"
-
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { Heart, MessageCircle, Share2, MoreHorizontal, Volume2, VolumeX, Pause, Play } from "lucide-react"
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  MoreHorizontal,
+  Volume2,
+  VolumeX,
+  Pause,
+  Play,
+} from "lucide-react"
 import { postInterface } from "../../../models/Post"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useSession } from "next-auth/react"
-
-
+import { LikeButton } from "./LikeButton"
 
 function timeAgo(input: string | Date) {
   const date = typeof input === "string" ? new Date(input) : input
@@ -35,118 +39,84 @@ function timeAgo(input: string | Date) {
 }
 
 export function PostCard(props: postInterface) {
+  
+  const { username, title, description, updatedAt, transformation, mediaUrl, likes, userProfilePic } = props
 
-  const {data:userData} = useSession();
-  const { username, title, description, updatedAt, transformation, mediaUrl, likes } = props
-
-  // Like state
-  const [liked, setLiked] = useState(false)
-  const [likesCount, setLikesCount] = useState<number>(likes!)
-
-  // Video state
-  const videoRef = useRef<HTMLVideoElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(true)
   const [isMuted, setIsMuted] = useState(true)
   const [progress, setProgress] = useState(0)
   const [showOverlayIcon, setShowOverlayIcon] = useState<"play" | "pause" | null>(null)
-
-  // Double-tap like animation
   const [burst, setBurst] = useState(false)
+  const [doubleTapped, setDoubleTapped] = useState<boolean>(false);
+
+
+  // Refs
+  const videoRef = useRef<HTMLVideoElement | null>(null)
   const lastTapRef = useRef<number | null>(null)
 
-  const profileUrl = useMemo(() => {
-    // mirrors the original source domain + path
-    return `https://ik.imagekit.io/threadify${userData?.user.image}`
-  }, [mediaUrl])
-
-  const src = useMemo(() => {
-    // mirrors the original source domain + path
-    return `https://ik.imagekit.io/threadify${mediaUrl}`
-  }, [mediaUrl])
+  const src = `https://ik.imagekit.io/threadify${mediaUrl}`
 
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
+    v.muted = isMuted
 
-    const onTime = () => {
-      if (!v.duration || !isFinite(v.duration)) return
-      setProgress((v.currentTime / v.duration) * 100)
-    }
-    const onPlay = () => setIsPlaying(true)
-    const onPause = () => setIsPlaying(false)
-    v.addEventListener("timeupdate", onTime)
-    v.addEventListener("play", onPlay)
-    v.addEventListener("pause", onPause)
-    // Attempt to autoplay on mount muted (IG-like)
     const tryPlay = async () => {
       try {
         await v.play()
-        setIsPlaying(true)
+
       } catch {
-        setIsPlaying(false)
+        console.log("Error occured")
       }
     }
-    v.muted = isMuted
     tryPlay()
-
-    return () => {
-      v.removeEventListener("timeupdate", onTime)
-      v.removeEventListener("play", onPlay)
-      v.removeEventListener("pause", onPause)
-    }
-  }, []) // eslint-disable-line
-
-  useEffect(() => {
-    const v = videoRef.current
-    if (v) v.muted = isMuted
   }, [isMuted])
 
-  const togglePlay = useCallback(async () => {
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.muted = isMuted
+  }, [isMuted])
+
+  // Handlers (no useCallback needed with compiler!)
+  function togglePlay() {
     const v = videoRef.current
     if (!v) return
     if (v.paused) {
-      await v.play()
+      v.play()
       setShowOverlayIcon("play")
     } else {
       v.pause()
       setShowOverlayIcon("pause")
     }
-    // brief overlay feedback
     setTimeout(() => setShowOverlayIcon(null), 450)
-  }, [])
+  }
 
-  const handleSeek = useCallback((clientX: number, target: HTMLElement) => {
+  function handleSeek(clientX: number, target: HTMLElement) {
     const v = videoRef.current
     if (!v || !v.duration) return
     const rect = target.getBoundingClientRect()
     const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
     v.currentTime = v.duration * ratio
     setProgress(ratio * 100)
-  }, [])
+  }
 
-  const handleDoubleTapLike = useCallback(() => {
-    // if (!liked) {
-    //   setLiked(true)
-    //   setLikeCount(100)
-    // }
-    // heart burst
+  function handleDoubleTapLike() {
+    // toggleLike();
+    setDoubleTapped(!doubleTapped);
     setBurst(true)
     setTimeout(() => setBurst(false), 500)
-  }, [liked])
+  }
 
-  const onMediaClick = useCallback(
-    (e: React.MouseEvent) => {
-      // Desktop double click like
-      if ((e as any).detail === 2) {
-        handleDoubleTapLike()
-        return
-      }
-      togglePlay()
-    },
-    [handleDoubleTapLike, togglePlay],
-  )
+ 
 
-  const onTouchStart = useCallback(() => {
+  function onMediaClick(e: React.MouseEvent) {
+    if ((e as any).detail === 2) {
+      handleDoubleTapLike()
+      return
+    }
+    togglePlay()
+  }
+
+  function onTouchStart() {
     const now = Date.now()
     if (lastTapRef.current && now - lastTapRef.current < 300) {
       handleDoubleTapLike()
@@ -154,41 +124,29 @@ export function PostCard(props: postInterface) {
     } else {
       lastTapRef.current = now
     }
-  }, [handleDoubleTapLike])
+  }
 
-  const onProgressClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      handleSeek(e.clientX, e.currentTarget)
-    },
-    [handleSeek],
-  )
+  function onProgressClick(e: React.MouseEvent<HTMLDivElement>) {
+    handleSeek(e.clientX, e.currentTarget)
+  }
 
-  const onProgressTouch = useCallback(
-    (e: React.TouchEvent<HTMLDivElement>) => {
-      const touch = e.touches[0]
-      if (!touch) return
-      handleSeek(touch.clientX, e.currentTarget)
-    },
-    [handleSeek],
-  )
+  function onProgressTouch(e: React.TouchEvent<HTMLDivElement>) {
+    const touch = e.touches[0]
+    if (!touch) return
+    handleSeek(touch.clientX, e.currentTarget)
+  }
 
-  const toggleLike = useCallback(() => {
-    setLiked((prev) => !prev);
-    setLikesCount((c) => liked ? c - 1 : c + 1);
-  }, [likesCount]);
+  console.log("postcard")
 
   return (
     <Card className="overflow-hidden border bg-background">
-      {/* Header (IG-like) */}
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
-           <Avatar className="h-10 w-10">
-            <AvatarImage
-              src={``}
-              // alt={author?.name ? `${author.name} avatar` : "User avatar"}
-            />
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={`https://ik.imagekit.io/threadify${userProfilePic}`} />
             <AvatarFallback>{(username || title || "U").slice(0, 1).toUpperCase()}</AvatarFallback>
-          </Avatar> 
+          </Avatar>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <p className="truncate font-medium text-foreground">{title}</p>
@@ -206,7 +164,7 @@ export function PostCard(props: postInterface) {
         </Button>
       </div>
 
-      {/* Media with custom controls (no native controls) */}
+      {/* Media */}
       <div className="relative bg-muted">
         <video
           ref={videoRef}
@@ -222,7 +180,7 @@ export function PostCard(props: postInterface) {
           onTouchStart={onTouchStart}
         />
 
-        {/* Center overlay feedback for play/pause */}
+        {/* Overlay play/pause */}
         {showOverlayIcon && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden>
             <div className="rounded-full bg-black/50 p-3 text-white">
@@ -231,7 +189,7 @@ export function PostCard(props: postInterface) {
           </div>
         )}
 
-        {/* Double-tap like burst */}
+        {/* Like burst */}
         <div
           className={cn(
             "pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-200",
@@ -242,9 +200,8 @@ export function PostCard(props: postInterface) {
           <Heart className="h-20 w-20 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)] fill-white" />
         </div>
 
-        {/* Controls bar (IG-style minimal) */}
+        {/* Controls */}
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-3">
-          {/* Progress bar */}
           <div
             className="relative h-1.5 w-full cursor-pointer rounded-full bg-white/30"
             role="slider"
@@ -258,7 +215,6 @@ export function PostCard(props: postInterface) {
             <div className="h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
           </div>
 
-          {/* Transport + volume */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button
@@ -280,7 +236,6 @@ export function PostCard(props: postInterface) {
                 {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </Button>
             </div>
-            {/* Keep right side empty (IG has minimal chrome) */}
             <div />
           </div>
         </div>
@@ -289,23 +244,16 @@ export function PostCard(props: postInterface) {
       {/* Caption */}
       {description ? (
         <div className="px-4 py-3">
-          <p className="text-pretty text-sm leading-6">
-            {/* <span className="font-medium mr-1">{author?.handle || author?.name || title}</span> */}
-            {description}
-          </p>
+          <p className="text-pretty text-sm leading-6">{description}</p>
         </div>
       ) : null}
 
-      {/* Actions (IG-like) */}
+      {/* Actions */}
       <div className="flex items-center justify-between px-4 pb-3">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" className="gap-2" aria-pressed={liked} onClick={toggleLike}>
-            <Heart className={cn("h-5 w-5 transition-colors", liked ? "fill-primary text-primary" : "")} />
-            <span className="text-sm">{likesCount}</span>
-          </Button>
+          <LikeButton likes={likes!} doubleTapped={doubleTapped} />
           <Button variant="ghost" size="sm" className="gap-2">
             <MessageCircle className="h-5 w-5" />
-            {/* <span className="text-sm">{comments}</span> */}
           </Button>
           <Button variant="ghost" size="sm" className="gap-2">
             <Share2 className="h-5 w-5" />

@@ -21,6 +21,7 @@ export interface postInterface {
   };
   createdAt: Date;
   updatedAt: Date;
+  userProfilePic?: string;
 }
 
 const postSchema = new Schema<postInterface>(
