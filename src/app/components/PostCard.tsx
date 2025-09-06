@@ -40,7 +40,7 @@ function timeAgo(input: string | Date) {
 
 export function PostCard(props: postInterface) {
   
-  const { username, title, description, updatedAt, transformation, mediaUrl, likes, userProfilePic } = props
+  const { _id, username, title, description, updatedAt, transformation, mediaUrl, likes, userProfilePic } = props
 
   const [isPlaying, setIsPlaying] = useState(true)
   const [isMuted, setIsMuted] = useState(true)
@@ -66,7 +66,7 @@ export function PostCard(props: postInterface) {
         await v.play()
 
       } catch {
-        console.log("Error occured")
+        console.log("Error occured");
       }
     }
     tryPlay()
@@ -82,9 +82,11 @@ export function PostCard(props: postInterface) {
     if (!v) return
     if (v.paused) {
       v.play()
+      setIsPlaying(true);
       setShowOverlayIcon("play")
     } else {
       v.pause()
+      setIsPlaying(false);
       setShowOverlayIcon("pause")
     }
     setTimeout(() => setShowOverlayIcon(null), 450)
@@ -136,7 +138,6 @@ export function PostCard(props: postInterface) {
     handleSeek(touch.clientX, e.currentTarget)
   }
 
-  console.log("postcard")
 
   return (
     <Card className="overflow-hidden border bg-background">
@@ -251,7 +252,7 @@ export function PostCard(props: postInterface) {
       {/* Actions */}
       <div className="flex items-center justify-between px-4 pb-3">
         <div className="flex items-center gap-4">
-          <LikeButton likes={likes!} doubleTapped={doubleTapped} />
+          <LikeButton likes={likes!} postId={_id.toString()} doubleTapped={doubleTapped} />
           <Button variant="ghost" size="sm" className="gap-2">
             <MessageCircle className="h-5 w-5" />
           </Button>

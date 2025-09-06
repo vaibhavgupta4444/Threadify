@@ -13,11 +13,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Missing userId or postId" }, { status: 400 });
     }
 
-  
+
     const existingLike = await Like.findOne({ userId, postId });
 
     if (existingLike) {
-      
+
       await Like.deleteOne({ _id: existingLike._id });
 
       await Post.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
@@ -28,13 +28,12 @@ export async function POST(req: Request) {
 
     const newLike = await Like.create({ userId, postId });
 
- 
+
     await Post.findByIdAndUpdate(postId, { $inc: { likes: 1 } });
 
     return NextResponse.json({ success: true, message: "Post liked", like: newLike }, { status: 201 });
 
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+    return NextResponse.json({ success: false, message: error instanceof Error ? error.message : "Server error", }, { status: 500 });
   }
 }

@@ -50,7 +50,7 @@ export async function PUT(request: NextRequest) {
     } catch (error) {
         console.error(error);
         return NextResponse.json(
-            { success: false, message: "Internal server error" },
+            { success: false, message: error instanceof Error ? error.message : "Server error", },
             { status: 500 }
         );
     }

@@ -1,6 +1,5 @@
-import { likeInterface } from "../models/Like";
 import { UserInterface } from "../models/User";
-import { responseType, updateProfileInterface, uploadAuthInterface, videoFormData } from "../types/responseType";
+import { likeFormData, responseType, updateProfileInterface, uploadAuthInterface, videoFormData } from "../types/responseType";
 
 
 export type userFormData = Omit<UserInterface, "_id">;
@@ -83,7 +82,7 @@ class ApiClient {
         })
     }
 
-    async likePost<T = responseType>(data: likeInterface){
+    async likePost<T = responseType>(data: likeFormData){
         return this.Fetch<T>("/likes",{
             method: "POST",
             body: data

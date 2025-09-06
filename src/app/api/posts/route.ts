@@ -38,7 +38,7 @@ export async function GET() {
     } catch (error) {
         return NextResponse.json({
             success: false,
-            message: error
+            message: error instanceof Error ? error.message : "Server error",
         }, { status: 500 });
     }
 }
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         return NextResponse.json({
             success: false,
-            message: error
+            message: error instanceof Error ? error.message : "Server error",
         }, { status: 500 });
     }
 }

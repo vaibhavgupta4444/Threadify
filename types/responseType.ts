@@ -29,3 +29,9 @@ export interface videoFormData{
     description:string,
     mediaUrl:string
 }
+
+     
+export interface likeFormData{
+    postId:string;
+    userId:string;
+}

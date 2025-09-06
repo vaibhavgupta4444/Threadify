@@ -4,7 +4,7 @@ export interface likeInterface {
     _id?: mongoose.Types.ObjectId;
     userId: mongoose.Types.ObjectId;
     postId: mongoose.Types.ObjectId;
-    createdAt: Date;
+    createdAt?: Date;
 }
 
 const likeSchema = new Schema<likeInterface>(
