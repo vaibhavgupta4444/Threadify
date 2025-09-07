@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Heart } from 'lucide-react'

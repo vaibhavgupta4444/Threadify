@@ -9,6 +9,7 @@ import UploadPost from "./components/UploadPost"
 import { useEffect, useState } from "react"
 import { apiClient } from "../../lib/app-client"
 import { postInterface } from "../../models/Post"
+import { toast } from "sonner"
 
 
 export default function HomePage() {
@@ -18,6 +19,7 @@ export default function HomePage() {
   const getPosts = async () => {
     try {
       const response = await apiClient.getPosts();
+    
       if (response.success && response.posts) {
         setPost([...response?.posts]);
         // console.log(post);
@@ -25,7 +27,7 @@ export default function HomePage() {
         setPost([]);
       }
     } catch (err) {
-      console.log(err);
+      toast.error(err instanceof Error ? err.message : "Something went wrong!");
     }
   }
 

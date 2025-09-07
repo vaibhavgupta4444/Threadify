@@ -1,5 +1,5 @@
 import { UserInterface } from "../models/User";
-import { likeFormData, responseType, updateProfileInterface, uploadAuthInterface, videoFormData } from "../types/responseType";
+import { CommentForm, likeFormData, responseType, updateProfileInterface, uploadAuthInterface, videoFormData } from "../types/responseType";
 
 
 export type userFormData = Omit<UserInterface, "_id">;
@@ -88,6 +88,25 @@ class ApiClient {
             body: data
         })
     }
+
+    async createComment<T = responseType>(data: CommentForm){
+        return this.Fetch<T>("/comment",{
+            method: "POST",
+            body: data
+        })
+    }
+
+   async getComments<T = responseType>(data: CommentForm) {
+  const query = new URLSearchParams({
+    postId: data.postId,
+    page: String(data.page ?? 1),
+    limit: String(data.limit ?? 10),
+  });
+
+  return this.Fetch<T>(`/comment?${query.toString()}`, {
+    method: "GET",
+  });
+}
 }
 
 export const apiClient = new ApiClient();

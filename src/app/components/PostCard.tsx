@@ -19,6 +19,10 @@ import { postInterface } from "../../../models/Post"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LikeButton } from "./LikeButton"
+import { CommentSection } from "./CommentSection"
+import { CommentForm } from "../../../types/responseType"
+import { toast } from "sonner"
+import { apiClient } from "../../../lib/app-client"
 
 function timeAgo(input: string | Date) {
   const date = typeof input === "string" ? new Date(input) : input
@@ -39,7 +43,7 @@ function timeAgo(input: string | Date) {
 }
 
 export function PostCard(props: postInterface) {
-  
+
   const { _id, username, title, description, updatedAt, transformation, mediaUrl, likes, userProfilePic } = props
 
   const [isPlaying, setIsPlaying] = useState(true)
@@ -48,6 +52,8 @@ export function PostCard(props: postInterface) {
   const [showOverlayIcon, setShowOverlayIcon] = useState<"play" | "pause" | null>(null)
   const [burst, setBurst] = useState(false)
   const [doubleTapped, setDoubleTapped] = useState<boolean>(false);
+  const [showComments, setShowComments] = useState(false)
+  const [allComments, setAllComments] = useState<CommentForm[]>([]);
 
 
   // Refs
@@ -55,6 +61,26 @@ export function PostCard(props: postInterface) {
   const lastTapRef = useRef<number | null>(null)
 
   const src = `https://ik.imagekit.io/threadify${mediaUrl}`
+
+  const getComments = async (postId: string, page = 1, limit = 10) => {
+    if (showComments) {
+      // If already showing, just hide them
+      setShowComments(false);
+      return;
+    }
+
+    try {
+      const response = await apiClient.getComments({ postId, page, limit });
+      if (response.success) {
+        setAllComments(response.comments ?? []);
+        setShowComments(true); // only show after data is loaded
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong!");
+    }
+  };
+
+
 
   useEffect(() => {
     const v = videoRef.current
@@ -108,7 +134,7 @@ export function PostCard(props: postInterface) {
     setTimeout(() => setBurst(false), 500)
   }
 
- 
+
 
   function onMediaClick(e: React.MouseEvent) {
     if ((e as any).detail === 2) {
@@ -138,9 +164,8 @@ export function PostCard(props: postInterface) {
     handleSeek(touch.clientX, e.currentTarget)
   }
 
-
   return (
-    <Card className="overflow-hidden border bg-background">
+    <Card className="overflow-hidden border bg-background shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -253,8 +278,9 @@ export function PostCard(props: postInterface) {
       <div className="flex items-center justify-between px-4 pb-3">
         <div className="flex items-center gap-4">
           <LikeButton likes={likes!} postId={_id.toString()} doubleTapped={doubleTapped} />
-          <Button variant="ghost" size="sm" className="gap-2">
+          <Button onClick={() => getComments(_id.toString())} variant="ghost" size="sm" className="gap-2">
             <MessageCircle className="h-5 w-5" />
+            <span className="text-sm">{allComments.length}</span>
           </Button>
           <Button variant="ghost" size="sm" className="gap-2">
             <Share2 className="h-5 w-5" />
@@ -262,6 +288,11 @@ export function PostCard(props: postInterface) {
           </Button>
         </div>
       </div>
+      {showComments && (
+        <div className="border-none">
+          <CommentSection postId={_id.toString()} contents={allComments} />
+        </div>
+      )}
     </Card>
   )
 }

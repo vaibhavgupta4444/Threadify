@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const connectionString = process.env.MONGODB_URL!; // we declare that MONGODB_URL is present
+const connectionString = process.env.MONGODB_URL!; 
 
 if (!connectionString) {
     throw new Error('Connection string is not defined');
