@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Compass, Users } from "lucide-react"
 import UploadPost from "./components/UploadPost"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { apiClient } from "../../lib/app-client"
 import { postInterface } from "../../models/Post"
 import { toast } from "sonner"
@@ -15,19 +15,22 @@ import { toast } from "sonner"
 export default function HomePage() {
 
   const [post, setPost] = useState<postInterface[]>([]);
+  const [page, setPage] = useState<number>(0);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+
+  const loaderRef = useRef(null);
 
   const getPosts = async () => {
-    if(post.length > 0){
-      return;
-    }
+
     try {
-      const response = await apiClient.getPosts();
-    
+      const response = await apiClient.getPosts({ page: page + 1 });
+
       if (response.success && response.posts) {
         setPost([...response?.posts]);
-        // console.log(post);
+        setPage(page + 1);
       } else {
         setPost([]);
+        setHasMore(false);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong!");
@@ -35,8 +38,27 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    getPosts();
-  }, [])
+    if (hasMore) {
+      getPosts();
+    }
+  }, [page]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 1 }
+    );
+
+    if (loaderRef.current) observer.observe(loaderRef.current);
+
+    return () => {
+      if (loaderRef.current) observer.unobserve(loaderRef.current);
+    };
+  }, [hasMore]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,6 +112,12 @@ export default function HomePage() {
                   />)
                 }
               </div>
+              <div>
+                {!hasMore && <p className="text-center mt-4 font-semibold text-primary opacity-40">No more Posts...</p>}
+
+                {/* invisible div for observer */}
+                <div ref={loaderRef} className="h-4" />
+              </div>
             </section>
 
             {/* Right sidebar */}
@@ -124,8 +152,8 @@ export default function HomePage() {
               </div>
             </aside>
           </div>
-        </div>
-      </main>
-    </div>
+        </div >
+      </main >
+    </div >
   )
 }

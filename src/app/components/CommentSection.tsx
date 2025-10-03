@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -19,8 +19,13 @@ interface CommentSectionProps {
 }
 
 export function CommentSection({ postId, contents = [] }: CommentSectionProps) {
-  const [newComment, setNewComment] = useState("")
+  const [newComment, setNewComment] = useState<string>("")
   const [allComments, setAllComments] = useState<CommentForm[]>(contents)
+  const [page, setPage] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+
+  const loaderRef = useRef(null);
   const { data } = useSession();
 
   async function handleAddComment() {
@@ -34,7 +39,41 @@ export function CommentSection({ postId, contents = [] }: CommentSectionProps) {
     } finally {
       setNewComment("");
     }
-  }
+  };
+
+  useEffect(() => {
+    async function fetchComment() {
+      setLoading(true);
+      const response = await apiClient.getComments({ postId, page: page + 1 });
+      if (response.success) {
+        if (response.comments?.length === 0) {
+          setHasMore(false);
+        } else {
+          setAllComments(prev => [...prev, ...response.comments || []]);
+        }
+        setPage(e => e + 1);
+        setLoading(false);
+      }
+    }
+    if (hasMore) fetchComment();
+  }, [page]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading && hasMore) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 1 }
+    );
+
+    if (loaderRef.current) observer.observe(loaderRef.current);
+
+    return () => {
+      if (loaderRef.current) observer.unobserve(loaderRef.current);
+    };
+  }, [loading, hasMore]);
 
   return (
     <Card className="border-none p-3">
@@ -48,7 +87,7 @@ export function CommentSection({ postId, contents = [] }: CommentSectionProps) {
             onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
           />
           <Button size="sm" onClick={handleAddComment}>
-            Post
+            Comment
           </Button>
         </div>
 
@@ -79,6 +118,13 @@ export function CommentSection({ postId, contents = [] }: CommentSectionProps) {
             ))
           )}
         </div>
+
+
+        {loading && <p className="text-center">Loading...</p>}
+        {/* {!hasMore && <p className="text-center">No more comments...</p>} */}
+
+        {/* invisible div for observer */}
+        <div ref={loaderRef} className="h-1" />
       </div>
     </Card>
   )

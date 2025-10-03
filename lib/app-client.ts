@@ -52,29 +52,33 @@ class ApiClient {
         })
     }
 
-    async checkUsername<T = responseType>(username:string){
+    async checkUsername<T = responseType>(username: string) {
         return this.Fetch<T>("/check-username", {
             method: "POST",
             body: username
         })
     }
 
-    async updateProfile<T = responseType>(userData :updateProfileInterface){
-         return this.Fetch<T>("/update-profile", {
+    async updateProfile<T = responseType>(userData: updateProfileInterface) {
+        return this.Fetch<T>("/update-profile", {
             method: "PUT",
             body: userData
         })
     }
 
-        async uploadAuth(){
+    async uploadAuth() {
         return this.Fetch<uploadAuthInterface>("/upload-auth");
     }
 
 
     //Post related section
 
-    async getPosts<T = responseType>(){
-        return this.Fetch<T>('/posts');
+    async getPosts<T = responseType>(data:{page:number, limit?: number}) {
+        const query = new URLSearchParams({
+            page: (data.page ?? 1).toString(),
+            limit: (data.limit ?? 10).toString(),
+        });
+        return this.Fetch<T>(`/posts?${query.toString()}`);
     }
 
     async createPost<T = responseType>(videoData: postInterface) {
@@ -84,31 +88,31 @@ class ApiClient {
         })
     }
 
-    async likePost<T = responseType>(data: likeInterface){
-        return this.Fetch<T>("/likes",{
+    async likePost<T = responseType>(data: likeInterface) {
+        return this.Fetch<T>("/likes", {
             method: "POST",
             body: data
         })
     }
 
-    async createComment<T = responseType>(data: CommentForm){
-        return this.Fetch<T>("/comment",{
+    async createComment<T = responseType>(data: CommentForm) {
+        return this.Fetch<T>("/comment", {
             method: "POST",
             body: data
         })
     }
 
-   async getComments<T = responseType>(data: CommentForm) {
-  const query = new URLSearchParams({
-    postId: typeof data.postId === "string" ? data.postId : data.postId.toString(),
-    page: (data.page ?? 1).toString(),
-    limit: (data.limit ?? 10).toString(),
-  });
+    async getComments<T = responseType>(data: CommentForm) {
+        const query = new URLSearchParams({
+            postId: typeof data.postId === "string" ? data.postId : data.postId.toString(),
+            page: (data.page ?? 1).toString(),
+            limit: (data.limit ?? 10).toString(),
+        });
 
-  return this.Fetch<T>(`/comment?${query.toString()}`, {
-    method: "GET",
-  });
-}
+        return this.Fetch<T>(`/comment?${query.toString()}`, {
+            method: "GET",
+        });
+    }
 }
 
 export const apiClient = new ApiClient();

@@ -65,7 +65,6 @@ export function PostCard(props: postInterface) {
 
   const getComments = async (postId: string, page = 1, limit = 10) => {
     if (showComments) {
-      // If already showing, just hide them
       setShowComments(false);
       return;
     }
@@ -84,7 +83,6 @@ export function PostCard(props: postInterface) {
       toast.error(err instanceof Error ? err.message : "Something went wrong!");
     }
   };
-
 
 
   useEffect(() => {

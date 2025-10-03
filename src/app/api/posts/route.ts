@@ -6,19 +6,25 @@ import { authOptions } from "../../../../lib/authOptions";
 import User from "../../../../models/User";
 import Like from "../../../../models/Like";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
+
+    const { searchParams } = new URL(request.url);
     try {
+
+        const page = parseInt(searchParams.get("page") ?? "1", 10);
+        const limit = parseInt(searchParams.get("limit") ?? "10", 10);
         await dbConnect();
 
         const posts = await Post.find({})
             .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
             .populate({
                 path: 'userId',
                 select: 'username image',
                 model: User
             })
-           
+            .limit(limit)
             .lean();
 
         if (!posts || posts.length === 0) {
@@ -30,12 +36,12 @@ export async function GET() {
         // Check likes ONLY for these specific posts (not all posts user has liked)
         let userLikesMap: Record<string, boolean> = {};
         if (session?.user?.id) {
-            const likes = await Like.find({ 
+            const likes = await Like.find({
                 userId: session.user.id,
-                postId: { $in: postIds } 
+                postId: { $in: postIds }
             }).lean();
-            
-           
+
+
             userLikesMap = likes.reduce((acc, like) => {
                 acc[like.postId.toString()] = true;
                 return acc;
