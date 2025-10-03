@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -67,13 +68,8 @@ const Page = () => {
     try {
       const response = await apiClient.register({ username: data.username, email: data.email, contactNo: data.contactNo, password: data.password });
       if (response.success) {
-        await signIn('credentials', {
-                redirect: false,
-                email: data.email,
-                password: data.password,
-            })
         toast.success(response.message);
-        router.push('/update-profile');
+        router.push('/verify/' + data.username);
       }
     } catch (error) {
       console.log(error);
@@ -82,14 +78,21 @@ const Page = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-xl">
-        <h1 className="mb-6 text-center text-2xl font-bold tracking-tight text-gray-900">
-          Create an Account
-        </h1>
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-16">
+      <div className="w-full max-w-md">
+        {/* Brand Section */}
+        <div className="text-center mb-8">
+          
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Create your account
+          </h1>
+          <p className="text-muted-foreground">Join the community and start sharing your creativity</p>
+        </div>
 
+        {/* Form Container */}
+        <Card className="p-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
             <FormField
               control={form.control}
@@ -98,19 +101,27 @@ const Page = () => {
                 <FormItem>
                   <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="username"
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e)
-                        debouncedUsername(e.target.value)
-                      }}
-                    />
+                    <div className="relative">
+                      <Input
+                        placeholder="Enter your username"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e)
+                          debouncedUsername(e.target.value)
+                        }}
+                      />
+                      {isCheckingUsername && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <Loader2 className='w-4 h-4 animate-spin text-muted-foreground' />
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
-                  {isCheckingUsername && <Loader2 className='animate-spin' />}
-                  <p className={`text-sm ${usernameMessage === "Username is available" ? 'text-green-500' : 'text-red-500'}`}>
-                    {usernameMessage}
-                  </p>
+                  {usernameMessage && (
+                    <p className={`text-sm ${usernameMessage === "Username is available" ? 'text-green-600' : 'text-destructive'}`}>
+                      {usernameMessage}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -125,8 +136,7 @@ const Page = () => {
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="joe@example.com"
-                      className="focus:ring-2 focus:ring-blue-500"
+                      placeholder="your.email@example.com"
                       {...field}
                     />
                   </FormControl>
@@ -140,12 +150,11 @@ const Page = () => {
               name="contactNo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contact</FormLabel>
+                  <FormLabel>Phone Number</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
-                      placeholder="+9198------0"
-                      className="focus:ring-2 focus:ring-blue-500"
+                      placeholder="+1 (555) 000-0000"
                       {...field}
                     />
                   </FormControl>
@@ -163,8 +172,7 @@ const Page = () => {
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Make a strong password"
-                      className="focus:ring-2 focus:ring-blue-500"
+                      placeholder="Create a strong password"
                       {...field}
                     />
                   </FormControl>
@@ -182,8 +190,7 @@ const Page = () => {
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Re-enter your password"
-                      className="focus:ring-2 focus:ring-blue-500"
+                      placeholder="Confirm your password"
                       {...field}
                     />
                   </FormControl>
@@ -194,20 +201,30 @@ const Page = () => {
 
             <Button
               type="submit"
-              className="w-full bg-primary text-white hover:opacity-90"
+              className="w-full"
+              disabled={form.formState.isSubmitting}
             >
-              Submit
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Creating account...
+                </>
+              ) : (
+                'Create account'
+              )}
             </Button>
           </form>
         </Form>
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600">
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-600 hover:underline">
-              Login
+            <Link href="/login" className="font-medium text-primary hover:underline">
+              Sign in
             </Link>
           </p>
         </div>
+        </Card>
       </div>
     </div>
   )

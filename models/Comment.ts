@@ -1,11 +1,11 @@
 import mongoose, { models, Schema } from "mongoose";
 
 export interface CommentInterface {
-  _id?: mongoose.Types.ObjectId;
-  postId: mongoose.Types.ObjectId;   
-  userId: mongoose.Types.ObjectId;  
-  content: string;
-  parentId?: mongoose.Types.ObjectId; // for replies (null if top-level comment)
+  _id?: mongoose.Types.ObjectId | string;
+  postId: mongoose.Types.ObjectId | string;   
+  userId?: mongoose.Types.ObjectId | string;  
+  content?: string;
+  parentId?: mongoose.Types.ObjectId | string; // for replies (null if top-level comment)
   likesCount?: number; 
   createdAt?: Date;
   updatedAt?: Date;

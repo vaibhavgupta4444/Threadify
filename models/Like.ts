@@ -2,8 +2,8 @@ import mongoose, { models, Schema } from "mongoose";
 
 export interface likeInterface {
     _id?: mongoose.Types.ObjectId;
-    userId: mongoose.Types.ObjectId;
-    postId: mongoose.Types.ObjectId;
+    userId: mongoose.Types.ObjectId | string;
+    postId: mongoose.Types.ObjectId | string;
     createdAt?: Date;
 }
 
@@ -14,6 +14,8 @@ const likeSchema = new Schema<likeInterface>(
   },
   { timestamps: true }
 );
+
+likeSchema.index({ userId: 1, postId: 1 }, { unique: true });
 const Like = models?.Like || mongoose.model<likeInterface>("Like",likeSchema);
 
 export default Like;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Comment, { CommentInterface } from "../../../../models/Comment";
 import dbConnect from "../../../../lib/dbConnection";
 import User from "../../../../models/User";
+import Post from "../../../../models/Post";
 
 
 export async function GET(request: NextRequest) {
@@ -71,6 +72,8 @@ export async function POST(request: NextRequest) {
       userId: commentData.userId,
       content: commentData.content,
     });
+
+    await Post.findByIdAndUpdate(commentData.postId, {$inc : {comments : 1}});
 
     return NextResponse.json({
       success: true,

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Search, Home, Compass, Heart, User, Plus, Menu, X, Bell } from "lucide-react"
+import { Search, Home, Compass, Heart, User, Plus, Menu, X, Bell, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -61,14 +61,15 @@ export function Navbar() {
                                 <span className="hidden lg:inline">Explore</span>
                             </Link>
                         </Button>
+                        <Button asChild variant="ghost" className="gap-1">
+                            <Link href="/chat">
+                                <MessageCircle className="h-5 w-5" />
+                                <span className="hidden lg:inline">Chat</span>
+                            </Link>
+                        </Button>
 
                         {isAuthenticated ? (
                             <>
-                                {/* <Button className="gap-1">
-                                    <Plus className="h-5 w-5" />
-                                    <span className="hidden sm:inline">Create</span>
-                                </Button> */}
-
                                 <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
                                     <Bell className="h-5 w-5" />
                                     <span
@@ -90,11 +91,15 @@ export function Navbar() {
                                     <DropdownMenuContent align="end" className="w-56">
                                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="gap-2">
-                                            <User className="h-4 w-4" />
-                                            Profile
+                                        <DropdownMenuItem asChild className="gap-2">
+                                            <Link href={`/profile/${session.user?.username}`}>
+                                                <User className="h-4 w-4" />
+                                                Profile
+                                            </Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem>Settings</DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/update-profile">Settings</Link>
+                                        </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem className="text-destructive" onClick={() => signOut()}>
                                             Log out
@@ -150,6 +155,12 @@ export function Navbar() {
                                 Explore
                             </Link>
                         </Button>
+                        <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                            <Link href="/chat">
+                                <MessageCircle className="h-5 w-5" />
+                                Chat
+                            </Link>
+                        </Button>
 
                         {isAuthenticated ? (
                             <>
@@ -161,9 +172,11 @@ export function Navbar() {
                                     <Heart className="h-5 w-5" />
                                     Activity
                                 </Button>
-                                <Button variant="ghost" className="mt-1 w-full justify-start gap-2">
-                                    <User className="h-5 w-5" />
-                                    Profile
+                                <Button asChild variant="ghost" className="mt-1 w-full justify-start gap-2">
+                                    <Link href={`/profile/${session.user?.username}`}>
+                                        <User className="h-5 w-5" />
+                                        Profile
+                                    </Link>
                                 </Button>
                                 <div className="my-2 h-px bg-border" />
                                 <Button

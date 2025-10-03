@@ -39,6 +39,7 @@ export const authOptions: NextAuthOptions = {
                     return {
                         id: user._id.toString(),
                         email: user.email,
+                        username: user.username,
                         image:user.image
                     }
 
@@ -52,7 +53,8 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
-                token.picture = user.image
+                token.username = (user as any).username;
+                token.picture = (user as any).image;
             }
             return token;
         },
@@ -60,6 +62,7 @@ export const authOptions: NextAuthOptions = {
 
             if (session.user) {
                 session.user.id = token.id as string;
+                session.user.username = token.username as string;
                 session.user.image = token.picture;
             }
             return session;
@@ -73,5 +76,5 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60
     },
-    secret: process.env.NEXT_AUTH_SECRETE
+    secret: process.env.NEXTAUTH_SECRET
 };

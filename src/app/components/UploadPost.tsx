@@ -36,6 +36,7 @@ export default function UploadPost() {
   const [description, setDescription] = useState("")
   // const [privacy, setPrivacy] = useState<Privacy>("public")
   const [mediaUrl, setMediaUrl] = useState("")
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('video')
   const [progress, setProgress] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -65,7 +66,7 @@ export default function UploadPost() {
     [file, title, isUploading, mediaUrl]
   )
 
-  const ACCEPT_TYPES = "video/mp4,video/webm,video/quicktime"
+  const ACCEPT_TYPES = "video/mp4,video/webm,video/quicktime,image/jpeg,image/jpg,image/png,image/gif,image/webp"
   const MAX_SIZE_MB = 100
 
   function resetForm() {
@@ -76,6 +77,7 @@ export default function UploadPost() {
     setDescription("")
     // setPrivacy("public")
     setMediaUrl("")
+    setMediaType('video')
     setProgress(0)
     setError(null)
     setIsUploading(false)
@@ -89,13 +91,17 @@ export default function UploadPost() {
   function onPickFile(f: File) {
     setError(null)
     if (!ACCEPT_TYPES.split(",").includes(f.type)) {
-      setError("Unsupported file type. Please upload MP4, WEBM, or MOV.")
+      setError("Unsupported file type. Please upload MP4, WEBM, MOV, JPG, PNG, GIF, or WEBP.")
       return
     }
     if (f.size > MAX_SIZE_MB * 1024 * 1024) {
       setError(`File too large. Max size is ${MAX_SIZE_MB}MB.`)
       return
     }
+
+    // Detect media type
+    const isImage = f.type.startsWith('image/')
+    setMediaType(isImage ? 'image' : 'video')
 
     setFile(f)
     if (previewURL) URL.revokeObjectURL(previewURL)
@@ -183,7 +189,7 @@ export default function UploadPost() {
 
     try {
       setIsUploading(true)
-      const res = await apiClient.createPost({ userId: userData?.user.id!, title, description, mediaUrl })
+      const res = await apiClient.createPost({ userId: userData?.user.id!, title, description, mediaUrl, mediaType })
 
       if (res.success) {
         toast.success(res.message)
@@ -218,7 +224,7 @@ export default function UploadPost() {
           <DialogHeader>
             <DialogTitle>Upload your post</DialogTitle>
             <DialogDescription>
-              Share short videos with your audience. MP4, WEBM, or MOV. Up to {MAX_SIZE_MB}MB.
+              Share images and videos with your audience. Images: JPG, PNG, GIF, WEBP. Videos: MP4, WEBM, MOV. Up to {MAX_SIZE_MB}MB.
             </DialogDescription>
           </DialogHeader>
 
@@ -239,7 +245,7 @@ export default function UploadPost() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                   <Video className="h-6 w-6" />
                 </div>
-                <p className="font-medium">Drag and drop your post here</p>
+                <p className="font-medium">Drag and drop your image or video here</p>
                 <p className="text-sm text-muted-foreground">or click to browse</p>
                 <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                   Choose file
@@ -256,7 +262,11 @@ export default function UploadPost() {
               <div className="flex items-start gap-3">
                 <div className="relative aspect-[9/16] w-28 overflow-hidden rounded-md bg-black/5">
                   {previewURL && (
-                    <video src={previewURL} className="h-full w-full object-cover" muted controls preload="metadata" />
+                    mediaType === 'video' ? (
+                      <video src={previewURL} className="h-full w-full object-cover" muted controls preload="metadata" />
+                    ) : (
+                      <img src={previewURL} alt="Preview" className="h-full w-full object-cover" />
+                    )
                   )}
                 </div>
                 <div className="flex-1 space-y-2">
@@ -358,7 +368,7 @@ export default function UploadPost() {
 
             <Button type="submit" disabled={!canSubmit} className="gap-2">
               {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
-              {isUploading ? "Uploading…" : "Upload reel"}
+                            {isUploading ? "Uploading…" : "Upload post"}
             </Button>
           </DialogFooter>
         </form>

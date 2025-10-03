@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
       await Like.deleteOne({ _id: existingLike._id });
 
-      await Post.findByIdAndUpdate(postId, { $inc: { likes: -1 } });
+      await Post.findByIdAndUpdate(postId, { $inc: { likes: -1 }, $max : {likes: 0} });
 
       return NextResponse.json({ success: true, message: "Post unliked" }, { status: 200 });
     }

@@ -7,6 +7,13 @@ export interface UserInterface{
     username:string;
     firstName?:string;
     lastName?:string;
+    bio?:string;
+    followers?: mongoose.Types.ObjectId[];
+    following?: mongoose.Types.ObjectId[];
+    isPrivate?: boolean;
+    verified?: boolean;
+    verificationCode?: string;
+    codeExpiration?: Date;
     contactNo: string;
     email:string;
     password:string;
@@ -20,6 +27,13 @@ const userSchema = new Schema<UserInterface>({
     email:{type:String,required:true,unique:true},
     firstName:{type:String,default:""},
     lastName:{type:String,default:""},
+    bio:{type:String,default:""},
+    followers:[{type:Schema.Types.ObjectId,ref:"User"}],    
+    following:[{type:Schema.Types.ObjectId,ref:"User"}],
+    isPrivate:{type:Boolean,default:false},
+    verified:{type:Boolean,default:false},
+    verificationCode:{type:String,default:""},
+    codeExpiration:{type:Date},
     contactNo:{type:String,required:true},
     password:{type:String,required:true}
 },{timestamps:true})

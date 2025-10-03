@@ -49,6 +49,10 @@ NEXTAUTH_SECRET=your_nextauth_secret
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
+# Email Configuration (for verification emails)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password_or_email_password
+
 # ImageKit
 IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
 IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
@@ -129,6 +133,37 @@ threadify/
 1. Configure your OAuth providers
 2. Set up callback URLs in your provider settings
 3. Add provider credentials to environment variables
+
+
+### Email Setup (Nodemailer)
+
+The application uses Nodemailer for sending verification emails. To configure:
+
+1. **Gmail Setup (Recommended)**:
+   - Use your Gmail address for `EMAIL_USER`
+   - Generate an App Password for `EMAIL_PASS`:
+     - Go to Google Account settings
+     - Enable 2-Factor Authentication
+     - Generate an App Password for "Mail"
+     - Use this App Password (not your regular password)
+
+2. **Other Email Providers**:
+   - Update the service in `lib/nodemailer.ts`
+   - Supported services: Gmail, Outlook, Yahoo, etc.
+   - Or use custom SMTP settings
+
+```typescript
+// Example for custom SMTP
+export const transporter = nodemailer.createTransporter({
+  host: 'smtp.your-provider.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+```
 
 
 ## Usage

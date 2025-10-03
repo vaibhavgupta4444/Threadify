@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
     Form,
     FormControl,
@@ -18,6 +19,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { Loader2 } from 'lucide-react'
 
 const Page = () => {
 
@@ -39,7 +41,7 @@ const Page = () => {
                 password: data.password,
             })
             if (response?.url) {
-                toast.success("Welocome back");
+                toast.success("Welcome back");
                 router.push('/');
             }
             if(response?.error){
@@ -48,69 +50,83 @@ const Page = () => {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center px-4">
-            <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-xl">
-                <h1 className="mb-6 text-center text-2xl font-bold tracking-tight text-gray-900">
-                    Login
-                </h1>
-
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="email"
-                                            placeholder="joe@example.com"
-                                            className="focus:ring-2 focus:ring-blue-500"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Password</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="password"
-                                            placeholder="Make a strong password"
-                                            className="focus:ring-2 focus:ring-blue-500"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-
-                        <Button
-                            type="submit"
-                            className="w-full bg-primary text-white hover:opacity-90"
-                        >
-                            Submit
-                        </Button>
-                    </form>
-                </Form>
-                <div className="text-center mt-4">
-                    <p className="text-sm text-gray-600">
-                        Don’t have an account?{" "}
-                        <Link href="/register" className="text-blue-600 hover:underline">
-                            Register
-                        </Link>
-                    </p>
+        <div className="min-h-screen bg-background flex items-center justify-center px-4 py-16">
+            <div className="w-full max-w-md">
+                {/* Brand Section */}
+                <div className="text-center mb-8">
+                
+                    <h1 className="text-2xl font-bold text-foreground mb-2">
+                        Welcome back
+                    </h1>
+                    <p className="text-muted-foreground">Sign in to your account to continue</p>
                 </div>
+
+                {/* Form Container */}
+                <Card className="p-6">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="email"
+                                                placeholder="your.email@example.com"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Password</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="password"
+                                                placeholder="Enter your password"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={form.formState.isSubmitting}
+                            >
+                                {form.formState.isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                        Signing in...
+                                    </>
+                                ) : (
+                                    'Sign in'
+                                )}
+                            </Button>
+                        </form>
+                    </Form>
+
+                    <div className="mt-6 text-center">
+                        <p className="text-sm text-muted-foreground">
+                            Don't have an account?{" "}
+                            <Link href="/register" className="font-medium text-primary hover:underline">
+                                Create account
+                            </Link>
+                        </p>
+                    </div>
+                </Card>
             </div>
         </div>
     )

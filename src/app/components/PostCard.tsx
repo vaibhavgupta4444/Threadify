@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 import {
   Heart,
   MessageCircle,
@@ -24,7 +25,7 @@ import { CommentForm } from "../../../types/responseType"
 import { toast } from "sonner"
 import { apiClient } from "../../../lib/app-client"
 
-function timeAgo(input: string | Date) {
+export function timeAgo(input: string | Date) {
   const date = typeof input === "string" ? new Date(input) : input
   const diff = Math.max(0, Date.now() - date.getTime())
   const mins = Math.floor(diff / 60000)
@@ -44,7 +45,7 @@ function timeAgo(input: string | Date) {
 
 export function PostCard(props: postInterface) {
 
-  const { _id, username, title, description, updatedAt, transformation, mediaUrl, likes, userProfilePic } = props
+  const { _id, username, title, description, updatedAt, transformation, mediaUrl, mediaType = 'video', likes, isLikedByCurrentUser, userProfilePic, comments } = props
 
   const [isPlaying, setIsPlaying] = useState(true)
   const [isMuted, setIsMuted] = useState(true)
@@ -70,6 +71,10 @@ export function PostCard(props: postInterface) {
     }
 
     try {
+      if(allComments.length > 0){
+        setShowComments(true);
+        return;
+      };
       const response = await apiClient.getComments({ postId, page, limit });
       if (response.success) {
         setAllComments(response.comments ?? []);
@@ -141,7 +146,10 @@ export function PostCard(props: postInterface) {
       handleDoubleTapLike()
       return
     }
-    togglePlay()
+    // Only toggle play for videos
+    if (mediaType === 'video') {
+      togglePlay()
+    }
   }
 
   function onTouchStart() {
@@ -165,24 +173,28 @@ export function PostCard(props: postInterface) {
   }
 
   return (
-    <Card className="overflow-hidden border bg-background shadow-md">
+    <Card className="overflow-hidden border bg-card shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={`https://ik.imagekit.io/threadify${userProfilePic}`} />
-            <AvatarFallback>{(username || title || "U").slice(0, 1).toUpperCase()}</AvatarFallback>
-          </Avatar>
+          <Link href={username ? `/profile/${username}` : '#'}>
+            <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
+              <AvatarImage src={`https://ik.imagekit.io/threadify${userProfilePic}`} />
+              <AvatarFallback>{(username || title || "U").slice(0, 1).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <p className="truncate font-medium text-foreground">{title}</p>
               {username ? (
-                <Badge variant="secondary" className="rounded-full">
-                  {username}
-                </Badge>
+                <Link href={`/profile/${username}`}>
+                  <Badge variant="secondary" className="rounded-full cursor-pointer hover:bg-secondary/80 transition-colors">
+                    {username}
+                  </Badge>
+                </Link>
               ) : null}
             </div>
-            <p className="text-sm text-muted-foreground">{timeAgo(updatedAt)}</p>
+            <p className="text-sm text-muted-foreground">{timeAgo(updatedAt!)}</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" aria-label="More options">
@@ -192,22 +204,34 @@ export function PostCard(props: postInterface) {
 
       {/* Media */}
       <div className="relative bg-muted">
-        <video
-          ref={videoRef}
-          width={transformation?.width}
-          height={transformation?.height}
-          src={src}
-          className="w-full max-h-[80vh] object-contain bg-black"
-          playsInline
-          loop
-          muted={isMuted}
-          controls={false}
-          onClick={onMediaClick}
-          onTouchStart={onTouchStart}
-        />
+        {mediaType === 'video' ? (
+          <video
+            ref={videoRef}
+            width={transformation?.width}
+            height={transformation?.height}
+            src={src}
+            className="w-full max-h-[80vh] object-contain bg-black"
+            playsInline
+            loop
+            muted={isMuted}
+            controls={false}
+            onClick={onMediaClick}
+            onTouchStart={onTouchStart}
+          />
+        ) : (
+          <img
+            src={src}
+            alt={title}
+            width={transformation?.width}
+            height={transformation?.height}
+            className="w-full max-h-[80vh] object-contain bg-black"
+            onClick={onMediaClick}
+            onTouchStart={onTouchStart}
+          />
+        )}
 
-        {/* Overlay play/pause */}
-        {showOverlayIcon && (
+        {/* Overlay play/pause - only for videos */}
+        {mediaType === 'video' && showOverlayIcon && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden>
             <div className="rounded-full bg-black/50 p-3 text-white">
               {showOverlayIcon === "play" ? <Play className="h-8 w-8" /> : <Pause className="h-8 w-8" />}
@@ -226,45 +250,47 @@ export function PostCard(props: postInterface) {
           <Heart className="h-20 w-20 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)] fill-white" />
         </div>
 
-        {/* Controls */}
-        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-3">
-          <div
-            className="relative h-1.5 w-full cursor-pointer rounded-full bg-white/30"
-            role="slider"
-            aria-label="Seek video"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(progress)}
-            onClick={onProgressClick}
-            onTouchStart={onProgressTouch}
-          >
-            <div className="h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                size="icon"
-                variant="secondary"
-                className="h-8 w-8"
-                aria-label={isPlaying ? "Pause" : "Play"}
-                onClick={togglePlay}
-              >
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              </Button>
-              <Button
-                size="icon"
-                variant="secondary"
-                className="h-8 w-8"
-                aria-label={isMuted ? "Unmute" : "Mute"}
-                onClick={() => setIsMuted((m) => !m)}
-              >
-                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </Button>
+        {/* Video Controls - only for videos */}
+        {mediaType === 'video' && (
+          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-3">
+            <div
+              className="relative h-1.5 w-full cursor-pointer rounded-full bg-white/30"
+              role="slider"
+              aria-label="Seek video"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress)}
+              onClick={onProgressClick}
+              onTouchStart={onProgressTouch}
+            >
+              <div className="h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
             </div>
-            <div />
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8"
+                  aria-label={isPlaying ? "Pause" : "Play"}
+                  onClick={togglePlay}
+                >
+                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </Button>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8"
+                  aria-label={isMuted ? "Unmute" : "Mute"}
+                  onClick={() => setIsMuted((m) => !m)}
+                >
+                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </Button>
+              </div>
+              <div />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Caption */}
@@ -277,10 +303,10 @@ export function PostCard(props: postInterface) {
       {/* Actions */}
       <div className="flex items-center justify-between px-4 pb-3">
         <div className="flex items-center gap-4">
-          <LikeButton likes={likes!} postId={_id.toString()} doubleTapped={doubleTapped} />
-          <Button onClick={() => getComments(_id.toString())} variant="ghost" size="sm" className="gap-2">
+          <LikeButton likes={likes!} postId={_id!.toString()} doubleTapped={doubleTapped} isLiked={isLikedByCurrentUser} />
+          <Button onClick={() => getComments(_id!.toString())} variant="ghost" size="sm" className="gap-2">
             <MessageCircle className="h-5 w-5" />
-            <span className="text-sm">{allComments.length}</span>
+            <span className="text-sm">{comments}</span>
           </Button>
           <Button variant="ghost" size="sm" className="gap-2">
             <Share2 className="h-5 w-5" />
@@ -288,9 +314,10 @@ export function PostCard(props: postInterface) {
           </Button>
         </div>
       </div>
+      <hr className="w-5/6 mx-auto "/>
       {showComments && (
         <div className="border-none">
-          <CommentSection postId={_id.toString()} contents={allComments} />
+          <CommentSection postId={_id!.toString()} contents={allComments}/>
         </div>
       )}
     </Card>

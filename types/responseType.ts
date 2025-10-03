@@ -1,3 +1,4 @@
+import { CommentInterface } from "../models/Comment";
 import { postInterface } from "../models/Post"
 
 export interface responseType {
@@ -23,28 +24,7 @@ export interface updateProfileInterface {
     lastName: string;
 }
 
-
-export interface videoFormData {
-    userId: string,
-    title: string,
-    description: string,
-    mediaUrl: string
-}
-
-
-export interface likeFormData {
-    postId: string;
-    userId: string;
-}
-
-
-export interface CommentForm {
-    _id?: string;
-    postId: string;
-    userId?: string;
-    parentId?:string;
-    content?: string;
-    createdAt?: Date;
+export interface CommentForm extends CommentInterface {
     page?: number;
     limit?:number;
     userData?: {

@@ -17,6 +17,9 @@ export default function HomePage() {
   const [post, setPost] = useState<postInterface[]>([]);
 
   const getPosts = async () => {
+    if(post.length > 0){
+      return;
+    }
     try {
       const response = await apiClient.getPosts();
     
@@ -82,7 +85,7 @@ export default function HomePage() {
               <div className="mt-6 space-y-6">
                 {post &&
                   post.map(d => <PostCard
-                    key={d._id.toString()}
+                    key={d._id!.toString()}
                     {...d}
                   />)
                 }

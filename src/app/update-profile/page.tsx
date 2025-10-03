@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -17,12 +18,13 @@ import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { apiClient } from '../../../lib/app-client'
-import { Camera } from 'lucide-react'
+import { Camera, ArrowLeft, Loader2 } from 'lucide-react'
 import { updateProfileSchema } from '@/schemas/updateProfileSchema'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useEffect, useState } from 'react'
 import { upload } from '@imagekit/next'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 
 const Page = () => {
   const router = useRouter()
@@ -33,6 +35,8 @@ const Page = () => {
   const [preview, setPreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState<boolean>(false)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+
+  const isAuthenticated = !!userData?.user;
 
   // Upload auth
   async function authenticator() {
@@ -143,95 +147,138 @@ const Page = () => {
   }, [form])
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-16">
-      <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-xl">
-        <h1 className="mb-6 text-center text-2xl font-bold tracking-tight text-gray-900">
-          Update Profile
-        </h1>
-
-        {/* Avatar Upload Section */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="relative">
-            <Avatar className="h-32 w-32 ring-2 ring-primary">
-              <AvatarImage
-                src={preview ?? profilePicUrl ?? undefined}
-                alt="Profile preview"
-              />
-              <AvatarFallback>{"U"}</AvatarFallback>
-            </Avatar>
-            <div className="absolute bottom-0 right-0">
-              <label
-                htmlFor="profilePic"
-                className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm font-medium text-secondary-foreground hover:bg-primary"
-              >
-                <Camera />
-              </label>
-              <input
-                id="profilePic"
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={(e) => onPickFile(e.target.files?.[0])}
-              />
+    <div className="min-h-screen bg-background pt-16">
+      <div className="mx-auto max-w-2xl px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <Button asChild variant="ghost" size="icon">
+              <Link href="/">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Update Profile</h1>
+              <p className="text-muted-foreground">Customize your profile information</p>
             </div>
           </div>
         </div>
 
-        {/* Form for names only */}
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="flex justify-evenly py-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Joe" 
-                        {...field} 
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Doe" 
-                        {...field} 
-                        disabled={isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {/* Main Content */}
+        <Card className="p-6">
+          {/* Avatar Upload Section */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="relative mb-4">
+              <Avatar className="h-32 w-32 ring-2 ring-border">
+                <AvatarImage
+                  src={preview ?? profilePicUrl ?? undefined}
+                  alt="Profile preview"
+                />
+                <AvatarFallback className="text-2xl">
+                  {userData?.user?.email?.charAt(0).toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-2 -right-2">
+                <label
+                  htmlFor="profilePic"
+                  className="inline-flex cursor-pointer items-center justify-center rounded-full bg-primary p-3 text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
+                >
+                  {isUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                </label>
+                <input
+                  id="profilePic"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => onPickFile(e.target.files?.[0])}
+                />
+              </div>
             </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Click the camera icon to upload a new profile picture
+            </p>
+            {isUploading && (
+              <p className="text-sm text-primary mt-2">Uploading image...</p>
+            )}
+          </div>
 
-            <Button
-              type="submit"
-              disabled={isUploading || isSubmitting}
-              className="w-full bg-primary text-white hover:bg-primary/90"
-              onClick={() => console.log("Button clicked")} // Debug
-            >
-              {isUploading
-                ? "Uploading..."
-                : isSubmitting
-                ? "Updating..."
-                : "Update"}
-            </Button>
-          </form>
-        </Form>
+          {/* Form for names only */}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter your first name" 
+                          {...field} 
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter your last name" 
+                          {...field} 
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  asChild
+                >
+                  <Link href="/">Cancel</Link>
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isUploading || isSubmitting}
+                  className="flex-1"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Uploading...
+                    </>
+                  ) : isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Update Profile'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </Card>
       </div>
     </div>
   )

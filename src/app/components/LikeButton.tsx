@@ -11,65 +11,45 @@ import { useSession } from 'next-auth/react'
 export interface LikeButtonProps {
   postId: string
   likes: number
-  doubleTapped: boolean
+  doubleTapped: boolean,
+  isLiked?: boolean,
 }
 
-export function LikeButton({ likes, doubleTapped, postId }: LikeButtonProps) {
-  const [liked, setLiked] = useState(doubleTapped)
+export function LikeButton({ likes, doubleTapped, postId, isLiked = false }: LikeButtonProps) {
+  const [liked, setLiked] = useState<boolean>(isLiked)
   const [likesCount, setLikesCount] = useState<number>(likes)
-  const { data: userData, status } = useSession()
+  const { data: userData, status } = useSession();
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
-  // Store the original values to revert if the API call fails
-  const [originalLiked, setOriginalLiked] = useState(doubleTapped)
-  const [originalLikesCount, setOriginalLikesCount] = useState<number>(likes)
 
-  // Update state when doubleTapped prop changes (from parent double-click)
-  useEffect(() => {
-    if (doubleTapped !== liked && status === 'authenticated') {
-      handleLikeUpdate(!liked)
-    }
-  }, [doubleTapped])
 
   const debouncedApiCall = useDebounceCallback(async (isLiked: boolean) => {
     if (status !== 'authenticated') return
-    
+    setIsProcessing(true);
     try {
       await apiClient.likePost({ 
         postId: postId, 
         userId: userData.user.id 
       })
-      // Update our original values on success
-      setOriginalLiked(isLiked)
-      setOriginalLikesCount(isLiked ? originalLikesCount + 1 : originalLikesCount - 1)
     } catch (error) {
       console.error('Failed to update like:', error)
-      // Revert to original values on error
-      setLiked(originalLiked)
-      setLikesCount(originalLikesCount)
+    }finally{
+      setLiked(isLiked);
+      setIsProcessing(false);
+      isLiked ? setLikesCount(e => e+1): setLikesCount(e => e - 1);
     }
-  }, 1000)
+  }, 1000);
 
-  function handleLikeUpdate(shouldLike: boolean) {
-    if (status !== 'authenticated') {
-      console.log('User must be logged in to like posts')
-      return
-    }
-
-    // Store current state before making changes
-    const currentLiked = liked
-    const currentLikesCount = likesCount
-
-    // Immediately update UI for responsive experience
-    setLiked(shouldLike)
-    setLikesCount(shouldLike ? currentLikesCount + 1 : currentLikesCount - 1)
-
-    // Debounce the API call to reduce server load
-    debouncedApiCall(shouldLike)
+  const handleClick = () => {
+    if(isProcessing) return;
+    debouncedApiCall(!isLiked);
   }
 
-  function handleClick() {
-    handleLikeUpdate(!liked)
-  }
+  useEffect(() => {
+    if(doubleTapped){
+      handleClick();
+    }
+  },[doubleTapped]);
 
   return (
     <Button 
@@ -82,7 +62,7 @@ export function LikeButton({ likes, doubleTapped, postId }: LikeButtonProps) {
     >
       <Heart className={cn(
         "h-5 w-5 transition-colors", 
-        liked ? "fill-primary text-primary" : "",
+        liked ? "fill-red-600 text-red-600" : "",
         status !== 'authenticated' ? "opacity-50" : ""
       )} />
       <span className="text-sm">{likesCount}</span>
