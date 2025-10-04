@@ -204,7 +204,7 @@ export function ChatList({ chats, activeChat, onChatSelect, onNewChat, isLoading
               <Card
                 key={chat._id}
                 className={`mb-2 cursor-pointer transition-colors hover:bg-muted/50 ${
-                  activeChat === chat._id ? 'bg-muted' : ''
+                  activeChat === chat._id ? 'bg-primary/20' : ''
                 }`}
                 onClick={() => onChatSelect(chat._id)}
               >

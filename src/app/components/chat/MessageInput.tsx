@@ -193,7 +193,7 @@ export function MessageInput({
   }
 
   return (
-    <div className="border-t border-border bg-background p-4">
+    <div className="border-t border-border p-4">
       {/* Reply indicator */}
       {replyTo && (
         <div className="mb-3 p-3 bg-muted rounded-lg border-l-2 border-primary">

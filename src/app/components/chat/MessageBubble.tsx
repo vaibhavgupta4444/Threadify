@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { formatDistanceToNow, format } from 'date-fns'
+import { format } from 'date-fns'
 import { MoreHorizontal, Reply, Edit, Trash2, Check, CheckCheck } from 'lucide-react'
 import {
   DropdownMenu,
@@ -90,12 +89,13 @@ export function MessageBubble({
 
   const getReadStatus = () => {
     if (!isOwn || message.readBy.length === 0) return null
-    
+
     const readCount = message.readBy.length
     if (readCount === 1) {
-      return <Check className="h-3 w-3 text-muted-foreground" />
+      if(isGroupChat) return <Check className="h-3 w-3 text-muted-foreground" />
+      return <CheckCheck className="h-3 w-3 text-primary" />
     } else {
-      return <CheckCheck className="h-3 w-3 text-blue-500" />
+      return <CheckCheck className="h-3 w-3 text-primary" />
     }
   }
 
@@ -118,7 +118,7 @@ export function MessageBubble({
             )}
           </div>
         )
-      
+
       case 'video':
         return (
           <div className="max-w-sm">
@@ -132,7 +132,7 @@ export function MessageBubble({
             )}
           </div>
         )
-      
+
       case 'file':
         return (
           <div className="flex items-center space-x-2 p-3 border rounded-lg max-w-sm">
@@ -152,7 +152,7 @@ export function MessageBubble({
             </div>
           </div>
         )
-      
+
       default:
         return <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
     }
@@ -177,69 +177,68 @@ export function MessageBubble({
         {/* Message bubble */}
         <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
           {/* Sender name for group chats */}
-          {isGroupChat && !isOwn && showAvatar && (
-            <span className="text-xs text-muted-foreground mb-1 px-2">
-              {getDisplayName(message.sender)}
-            </span>
-          )}
+            {isGroupChat && !isOwn && showAvatar && (
+              <span className="text-xs text-muted-foreground mb-1 px-2">
+                {getDisplayName(message.sender)} 
+              </span>
+            )}
 
-          {/* Reply indicator */}
-          {message.replyTo && (
-            <div className={`text-xs p-2 mb-1 rounded border-l-2 ${
-              isOwn 
-                ? 'bg-primary/10 border-primary text-primary-foreground/80' 
-                : 'bg-muted border-muted-foreground'
-            } max-w-full`}>
-              <div className="font-medium">{getDisplayName(message.replyTo.sender)}</div>
-              <div className="truncate">{message.replyTo.content}</div>
+            {/* Reply indicator */}
+            {message.replyTo && (
+              <div className={`text-xs p-2 mb-1 rounded border-l-2 ${isOwn
+                  ? 'bg-primary/10 border-primary text-primary-foreground/80'
+                  : 'bg-muted border-muted-foreground'
+                } max-w-full`}>
+                <div className="font-medium">{getDisplayName(message.replyTo.sender)}</div>
+                <div className="truncate">{message.replyTo.content}</div>
+              </div>
+            )}
+
+            {/* Message content */}
+            <div
+              className={`flex px-3 py-2 rounded-2xl ${isOwn
+                  ? 'flex-row-reverse bg-primary text-primary-foreground'
+                  : 'bg-muted text-foreground'
+                } cursor-pointer transition-all hover:shadow-md`}
+              onClick={() => setShowTime(!showTime)}
+            >
+              {renderMessageContent()}
+
+              {/* Message actions */}
+              <div className={`${ isOwn ? 'mr-1' : 'ml-1'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-6 w-6">
+                      <MoreHorizontal className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align={isOwn ? "start" : "end"}>
+                    {onReply && (
+                      <DropdownMenuItem onClick={() => onReply(message)}>
+                        <Reply className="h-4 w-4 mr-2" />
+                        Reply
+                      </DropdownMenuItem>
+                    )}
+                    {isOwn && onEdit && message.messageType === 'text' && (
+                      <DropdownMenuItem onClick={() => onEdit(message)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
+                    {isOwn && onDelete && (
+                      <DropdownMenuItem
+                        onClick={() => onDelete(message._id)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          )}
-
-          {/* Message content */}
-          <div
-            className={`relative px-3 py-2 rounded-2xl ${
-              isOwn
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-foreground'
-            } cursor-pointer transition-all hover:shadow-md`}
-            onClick={() => setShowTime(!showTime)}
-          >
-            {renderMessageContent()}
-
-            {/* Message actions */}
-            <div className={`absolute top-1 ${isOwn ? 'left-1' : 'right-1'} opacity-0 group-hover:opacity-100 transition-opacity`}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost" className="h-6 w-6">
-                    <MoreHorizontal className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align={isOwn ? "start" : "end"}>
-                  {onReply && (
-                    <DropdownMenuItem onClick={() => onReply(message)}>
-                      <Reply className="h-4 w-4 mr-2" />
-                      Reply
-                    </DropdownMenuItem>
-                  )}
-                  {isOwn && onEdit && message.messageType === 'text' && (
-                    <DropdownMenuItem onClick={() => onEdit(message)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                  )}
-                  {isOwn && onDelete && (
-                    <DropdownMenuItem 
-                      onClick={() => onDelete(message._id)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+          
 
           {/* Timestamp and read status */}
           <div className={`flex items-center space-x-1 mt-1 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
