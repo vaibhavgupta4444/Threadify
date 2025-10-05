@@ -16,7 +16,7 @@ interface MessageData {
 export const sendMessageHandler = (io: SocketIOServer, socket: Socket) => {
     socket.on('send-message', async (data: MessageData) => {
             try {
-              const { chatId, content, senderId, messageType = 'text', mediaUrl, replyTo } = data
+              const { chatId, content, senderId, messageType = 'text', mediaUrl, replyTo } = data;
               
               await dbConnection();
               

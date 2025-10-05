@@ -7,13 +7,13 @@ import { Types } from "mongoose"
 // Get messages for a specific chat
 export async function GET(
   request: NextRequest,
-  { params }: { params: { chatId: string } }
+  { params }: { params: Promise<{ chatId: string }> }
 ) {
   try {
     await dbConnection()
     
-    const { chatId } = params
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(request.url);
+    const { chatId }= await params;
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
     const userId = searchParams.get('userId')

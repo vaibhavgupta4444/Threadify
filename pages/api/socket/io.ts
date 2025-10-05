@@ -37,7 +37,7 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseServerIO) => {
      
 
       // Join a chat room
-      joinChatHandler(io, socket);
+      joinChatHandler(socket);
 
       // Leave a chat room
       leaveChatHandler(socket);

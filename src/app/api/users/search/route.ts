@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         { firstName: { $regex: query, $options: 'i' } },
         { lastName: { $regex: query, $options: 'i' } }
       ],
-      verified: true // Only show verified users
+      verified: true
     })
     .select('username firstName lastName image')
     .limit(limit)

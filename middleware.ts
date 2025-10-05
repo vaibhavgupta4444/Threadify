@@ -14,7 +14,7 @@ export default withAuth(
                     return true;
                 }
 
-                if(pathname === "/" || pathname.startsWith("/api/videos")){
+                if(pathname === "/" || pathname.startsWith("/api/videos") || pathname.startsWith("/api/forgot")){
                     return true;
                 }
                 return !!token;

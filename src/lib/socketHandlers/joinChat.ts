@@ -1,14 +1,14 @@
 import dbConnection from '../../../lib/dbConnection';
 import Chat from "../../../models/Chat";
 import { Types } from "mongoose";
-import { Server as SocketIOServer, Socket } from "socket.io";
+import { Socket } from "socket.io";
 
 interface JoinRoomData {
   chatId: string;
   userId: string;
 }
 
-export const joinChatHandler = (io: SocketIOServer, socket: Socket) => {
+export const joinChatHandler = (socket: Socket) => {
   socket.on("join-chat", async (data: JoinRoomData) => {
     try {
       const { chatId, userId } = data;
