@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Search, Home, Compass, Heart, User, Plus, Menu, X, Bell, MessageCircle } from "lucide-react"
+import { Search, Home, Compass, Heart, User, Menu, X, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -59,12 +59,6 @@ export function Navbar() {
                             <Link href="/explore">
                                 <Compass className="h-5 w-5" />
                                 <span className="hidden lg:inline">Explore</span>
-                            </Link>
-                        </Button>
-                        <Button asChild variant="ghost" className="gap-1">
-                            <Link href="/chat">
-                                <MessageCircle className="h-5 w-5" />
-                                <span className="hidden lg:inline">Chat</span>
                             </Link>
                         </Button>
 
@@ -153,12 +147,6 @@ export function Navbar() {
                             <Link href="/explore">
                                 <Compass className="h-5 w-5" />
                                 Explore
-                            </Link>
-                        </Button>
-                        <Button asChild variant="ghost" className="w-full justify-start gap-2">
-                            <Link href="/chat">
-                                <MessageCircle className="h-5 w-5" />
-                                Chat
                             </Link>
                         </Button>
 
