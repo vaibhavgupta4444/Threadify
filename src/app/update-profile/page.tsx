@@ -36,7 +36,7 @@ const Page = () => {
   const [isUploading, setIsUploading] = useState<boolean>(false)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
-  const isAuthenticated = !!userData?.user;
+  // const isAuthenticated = !!userData?.user;
 
   // Upload auth
   async function authenticator() {
@@ -130,9 +130,9 @@ const Page = () => {
       } else {
         toast.error("Failed to update profile")
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Submission error:", error)
-      toast.error(error.message || "Something went wrong!")
+      toast.error("Something went wrong!");
     } finally {
       setIsSubmitting(false)
     }

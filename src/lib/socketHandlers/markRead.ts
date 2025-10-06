@@ -4,9 +4,9 @@ import Message from "../../../models/Message";
 import { Types } from "mongoose";
 
 export const markReadHandler = (io: SocketIOServer, socket: Socket) => {
-    socket.on('mark-read', async (data: { messageIds: string[], userId: string }) => {
+    socket.on('markAsRead', async (data: { messageIds: string[], userId: string, chatId: string }) => {
         try {
-          const { messageIds, userId } = data
+          const { messageIds, userId, chatId } = data
           
           await dbConnection()
           
@@ -26,16 +26,13 @@ export const markReadHandler = (io: SocketIOServer, socket: Socket) => {
           )
 
           // Emit read status to chat participants
-          const messages = await Message.find({ _id: { $in: messageIds } }).select('chatId')
-          const chatIds = [...new Set(messages.map(msg => msg.chatId.toString()))]
-          
-          chatIds.forEach(chatId => {
-            io.to(chatId).emit('messages-read', {
-              messageIds,
-              userId,
-              readAt: new Date()
-            })
+          io.to(chatId).emit('messageRead', {
+            messageIds,
+            userId,
+            readAt: new Date()
           })
+          
+          console.log(`Messages marked as read by user ${userId} in chat ${chatId}`)
         } catch (error) {
           console.error('Error marking messages as read:', error)
           socket.emit('error', 'Failed to mark messages as read')

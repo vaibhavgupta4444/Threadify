@@ -9,7 +9,7 @@ interface JoinRoomData {
 }
 
 export const joinChatHandler = (socket: Socket) => {
-  socket.on("join-chat", async (data: JoinRoomData) => {
+  socket.on("joinChat", async (data: JoinRoomData) => {
     try {
       const { chatId, userId } = data;
 
@@ -24,7 +24,7 @@ export const joinChatHandler = (socket: Socket) => {
       socket.join(chatId);
       console.log(`User ${userId} joined chat ${chatId}`);
 
-      socket.to(chatId).emit("user-joined", {
+      socket.to(chatId).emit("userJoined", {
         userId,
         message: "User joined the chat",
       });

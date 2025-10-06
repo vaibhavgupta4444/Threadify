@@ -8,7 +8,7 @@ export type userFormData = Omit<UserInterface, "_id">;
 
 type fetchOptions = {
     method?: "GET" | "POST" | "PUT" | "DELETE",
-    body?: any,
+    body?: unknown,
     headers?: Record<string, string>
 }
 
@@ -16,7 +16,7 @@ type fetchOptions = {
 class ApiClient {
 
     private async Fetch<T>(
-        endpoint: String,
+        endpoint: string,
         options: fetchOptions = {}
     ): Promise<T> {
         const { method = "GET", body, headers = {} } = options;

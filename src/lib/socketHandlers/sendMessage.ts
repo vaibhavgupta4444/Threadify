@@ -14,7 +14,7 @@ interface MessageData {
 }
 
 export const sendMessageHandler = (io: SocketIOServer, socket: Socket) => {
-    socket.on('send-message', async (data: MessageData) => {
+    socket.on('sendMessage', async (data: MessageData) => {
             try {
               const { chatId, content, senderId, messageType = 'text', mediaUrl, replyTo } = data;
               
@@ -40,13 +40,13 @@ export const sendMessageHandler = (io: SocketIOServer, socket: Socket) => {
               const savedMessage = await newMessage.save()
               
               // Populate sender info
-              await savedMessage.populate('sender', 'username firstName lastName image')
+              await savedMessage.populate('sender', 'username avatar')
               if (replyTo) {
                 await savedMessage.populate('replyTo', 'content sender')
               }
     
               // Emit to all users in the chat room
-              io.to(chatId).emit('new-message', savedMessage)
+              io.to(chatId).emit('newMessage', savedMessage)
               
               console.log(`Message sent in chat ${chatId}:`, content)
             } catch (error) {

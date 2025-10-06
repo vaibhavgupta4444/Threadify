@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 export default function VerificationPage() {
   const params = useParams();
   const router = useRouter();
-  const username = params.username as string;
+  const username = params?.username as string;
   
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
@@ -96,7 +96,7 @@ export default function VerificationPage() {
         setVerificationCode(['', '', '', '', '', '']);
         inputRefs.current[0]?.focus();
       }
-    } catch (error) {
+    } catch{
       setError('Something went wrong. Please try again.');
       setVerificationCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
@@ -129,7 +129,7 @@ export default function VerificationPage() {
       } else {
         toast.error(data.message || 'Failed to resend code. Please try again.');
       }
-    } catch (error) {
+    } catch{
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsResending(false);

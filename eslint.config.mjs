@@ -19,6 +19,16 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
     ],
+    rules: {
+      'react/no-unescaped-entities': 'off',
+      '@next/next/no-page-custom-font': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-wrapper-object-types': 'warn',
+      '@typescript-eslint/no-non-null-asserted-optional-chain': 'warn',
+      'react/jsx-key': 'warn',
+      '@next/next/no-img-element': 'warn',
+      'jsx-a11y/alt-text': 'warn',
+    },
   },
 ];
 

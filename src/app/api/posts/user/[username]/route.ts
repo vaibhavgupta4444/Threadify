@@ -5,12 +5,12 @@ import User from "../../../../../../models/User"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
   try {
     await dbConnection()
     
-    const { username } = params
+    const { username } = await params
     
     if (!username) {
       return NextResponse.json(

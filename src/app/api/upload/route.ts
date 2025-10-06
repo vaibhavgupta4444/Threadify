@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { upload } from "@imagekit/next"
 
 // This is a placeholder upload endpoint for chat media
 // You can integrate this with your existing ImageKit upload logic

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { ChatList } from '../components/chat/ChatList'
 import { ChatRoom } from '../components/chat/ChatRoom'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -14,13 +13,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { 
   MessageCircle, 
   Plus, 
   Search, 
-  Users,
   X
 } from 'lucide-react'
 import { toast } from 'sonner'

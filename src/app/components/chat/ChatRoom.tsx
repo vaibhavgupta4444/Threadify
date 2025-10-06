@@ -121,21 +121,23 @@ export function ChatRoom({ chat, onBack, className }: ChatRoomProps) {
     if (!socket || !chat._id || !session?.user?.id) return
 
     // Join chat room
-    socket.emit('join-chat', {
+    socket.emit('joinChat', {
       chatId: chat._id,
       userId: session.user.id
     })
 
     // Listen for new messages
     const handleNewMessage = (message: Message) => {
+      console.log("New message received:", message);
       setMessages(prev => [...prev, message])
       setTimeout(scrollToBottom, 100)
       
       // Mark message as read if not from current user
       if (message.sender._id !== session.user.id) {
-        socket.emit('mark-read', {
+        socket.emit('markAsRead', {
           messageIds: [message._id],
-          userId: session.user.id
+          userId: session.user.id,
+          chatId: chat._id
         })
       }
     }
@@ -178,17 +180,17 @@ export function ChatRoom({ chat, onBack, className }: ChatRoomProps) {
       }))
     }
 
-    socket.on('new-message', handleNewMessage)
-    socket.on('user-typing', handleUserTyping)
-    socket.on('messages-read', handleMessagesRead)
+    socket.on('newMessage', handleNewMessage)
+    socket.on('userTyping', handleUserTyping)
+    socket.on('messageRead', handleMessagesRead)
 
     return () => {
-      socket.off('new-message', handleNewMessage)
-      socket.off('user-typing', handleUserTyping)
-      socket.off('messages-read', handleMessagesRead)
+      socket.off('newMessage', handleNewMessage)
+      socket.off('userTyping', handleUserTyping)
+      socket.off('messageRead', handleMessagesRead)
       
       // Leave chat room
-      socket.emit('leave-chat', {
+      socket.emit('leaveChat', {
         chatId: chat._id,
         userId: session.user.id
       })
@@ -204,9 +206,10 @@ export function ChatRoom({ chat, onBack, className }: ChatRoomProps) {
       .filter(msg => !msg.readBy.some(r => r.user === session.user.id))
 
     if (unreadMessages.length > 0) {
-      socket.emit('mark-read', {
+      socket.emit('markAsRead', {
         messageIds: unreadMessages.map(msg => msg._id),
-        userId: session.user.id
+        userId: session.user.id,
+        chatId: chat._id
       })
     }
   }, [messages, socket, session?.user?.id])
@@ -260,7 +263,7 @@ export function ChatRoom({ chat, onBack, className }: ChatRoomProps) {
       replyTo: replyTo?._id
     }
 
-    socket.emit('send-message', messageData)
+    socket.emit('sendMessage', messageData)
     setReplyTo(null) // Clear reply after sending
   }
 
